@@ -45,6 +45,10 @@ const Cuentas = () => {
     //Corte de caja
     const [showCorteModal, setShowCorteModal] = useState(false);
 
+    //categorias
+    const [categorias, setCategorias] = useState([]);
+    const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('N/A');
+
     // ✅ HANDLERS DETALLE SIMPLIFICADOS
     const handleAumentarCantidadDetalle = (id) => {
         // Actualizar productos originales
@@ -149,16 +153,34 @@ const Cuentas = () => {
         }
     };
 
-    const fetchProductos = async (currentPage = 1) => {
+    // ✅ Cargar categorías al abrir modal
+    const fetchCategorias = async () => {
         try {
-        const response = await fetch(`${apiURL}/productos?page=${currentPage}&limit=10`);
-        const data = await response.json();
-        if (data.success) {
-            setProductos(data.data);
-            setProductosPagination(data.pagination);
-        }
+            const response = await fetch(`${apiURL}/categorias`);
+            const data = await response.json();
+            if (data.success) {
+                setCategorias(data.data);
+            }
         } catch (error) {
-        console.error('Error cargando productos:', error);
+            console.error('Error cargando categorías:', error);
+        }
+    };
+
+    const fetchProductos = async (currentPage = 1, categoria = 'N/A') => {
+        try {
+            const params = new URLSearchParams({
+                page: currentPage,
+                limit: 10,
+                categoria: categoria
+            });
+            const response = await fetch(`${apiURL}/productos?${params}`);
+            const data = await response.json();
+            if (data.success) {
+                setProductos(data.data);
+                setProductosPagination(data.pagination);
+            }
+        } catch (error) {
+            console.error('Error cargando productos:', error);
         }
     };
 
@@ -350,7 +372,7 @@ const Cuentas = () => {
         
         // ✅ CARGAR PRODUCTOS ANTES de abrir modal
         setProductosPage(1);
-        await fetchProductos(1);
+        await Promise.all([fetchProductos(1), fetchCategorias()]);
         
         setShowDetailModal(true);
     }, [fetchProductos]);
@@ -403,6 +425,8 @@ const Cuentas = () => {
         setSelectedProductos([]);
         setCreateForm({ cliente: '', tipo_cuenta: 'individual', mesa_id: null });
         setProductosPage(1);
+        setCategoriaSeleccionada('N/A');  // ✅ Reset a N/A
+        fetchProductos(1, 'N/A');   
     };
 
     const handleCerrarDetalle = () => {
@@ -464,15 +488,17 @@ const Cuentas = () => {
 
     useEffect(() => {
         if (showDetailModal) {
-            fetchProductos(productosPage);
+            fetchCategorias(); 
+            fetchProductos(productosPage,categoriaSeleccionada);
         }
-    }, [showDetailModal, productosPage]);
+    }, [showDetailModal, productosPage, categoriaSeleccionada]);
 
     useEffect(() => {
         if (showCreateModal) {
-        fetchProductos(productosPage);
+            fetchCategorias(); 
+            fetchProductos(productosPage, categoriaSeleccionada);
         }
-    }, [showCreateModal, productosPage]);
+    }, [showCreateModal, productosPage, categoriaSeleccionada]);
 
     useEffect(() => {
         if (selectedProductos.length === 0) return;
@@ -547,6 +573,7 @@ const Cuentas = () => {
                             onClick={() => {
                                 setShowCreateModal(true);
                                 setProductosPage(1);
+                                setCategoriaSeleccionada('N/A');
                             }}
                             className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base"
                         >
@@ -778,7 +805,7 @@ const Cuentas = () => {
                                     placeholder="Nombre del cliente"
                                 />
                             </div>
-                             {/* Contenedor Tipo de Cuenta */}
+                            {/* Contenedor Tipo de Cuenta */}
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-3">
                                     Tipo de Cuenta
@@ -888,10 +915,10 @@ const Cuentas = () => {
                             </div>
                         )}
 
-                        {/* LISTA PRODUCTOS DESTACADA */}
+                       {/* LISTA PRODUCTOS DESTACADA - CORREGIDA */}
                         <div className="p-6 sm:p-8 border-b-4 border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50">
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                                {/* TÍTULO MÁS PEQUEÑO EN MÓVIL */}
+                                {/* TÍTULO */}
                                 <h3 className="text-base sm:text-2xl font-bold flex items-center gap-2 text-emerald-800">
                                     🛍️ Lista de Productos
                                     <span className="text-sm sm:text-lg bg-emerald-200 text-emerald-800 px-3 py-1 rounded-full font-semibold">
@@ -900,29 +927,64 @@ const Cuentas = () => {
                                 </h3>
                             </div>
 
-                            {/* PAGINACIÓN SUPERIOR */}
-                            {productosPagination.totalPages > 1 && (
-                                <div className="flex items-center justify-end gap-2 pb-4 mb-2">
-                                    <button
-                                        onClick={() => setProductosPage(Math.max(1, productosPage - 1))}
-                                        disabled={productosPage === 1}
-                                        className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                    >
-                                        ‹
-                                    </button>
-                                    <button
-                                        onClick={() => setProductosPage(Math.min(productosPagination.totalPages || 1, productosPage + 1))}
-                                        disabled={productosPage === (productosPagination.totalPages || 1)}
-                                        className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                    >
-                                        ›
-                                    </button>
-                                </div>
-                            )}
+                            {/* CONTENEDOR SIMPLE */}
+                            <div className="mb-6 space-y-3">
+                                {/* PAGINACIÓN SUPERIOR */}
+                                {productosPagination.totalPages > 1 && (
+                                    <div className="flex justify-end gap-2">
+                                        <button onClick={() => (
+                                            setProductosPage(Math.max(1, productosPage - 1))
+                                            )} 
+                                                disabled={productosPage === 1}
+                                                className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 flex items-center justify-center">
+                                            ‹
+                                        </button>
+                                        <button onClick={() => setProductosPage(Math.min(productosPagination.totalPages || 1, productosPage + 1))} 
+                                                disabled={productosPage === (productosPagination.totalPages || 1)}
+                                                className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 flex items-center justify-center">
+                                            ›
+                                        </button>
+                                    </div>
+                                )}
 
+                                {/* CATEGORÍAS - Scroll horizontal NATURAL */}
+                                <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+                                    {/* N/A */}
+                                    <button onClick={() => {
+                                            setCategoriaSeleccionada('N/A');
+                                            fetchProductos(1, 'N/A');
+                                            setProductosPage(1);
+                                        }}
+                                        className={`flex-none px-3 py-2 rounded-xl font-semibold text-sm whitespace-nowrap ${
+                                            categoriaSeleccionada === 'N/A'
+                                                ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg'
+                                                : 'bg-white hover:bg-emerald-50 text-gray-700 border border-gray-200 hover:shadow-md'
+                                        }`}>
+                                        N/A
+                                    </button>
+                                    
+                                    {/* Categorías */}
+                                    {categorias.map((cat) => (
+                                        <button key={cat.id}
+                                                onClick={() => {
+                                                    setCategoriaSeleccionada(cat.codigo);
+                                                    fetchProductos(1, cat.codigo);
+                                                    setProductosPage(1);
+                                                }}
+                                                className={`flex-none px-3 py-2 rounded-xl font-semibold text-sm whitespace-nowrap flex items-center gap-1 ${
+                                                    categoriaSeleccionada === cat.codigo
+                                                        ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg'
+                                                        : 'bg-white hover:bg-emerald-50 text-gray-700 border border-gray-200 hover:shadow-md'
+                                                }`}>
+                                            {cat.codigo}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* GRID PRODUCTOS */}
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                                 {productos.map(producto => {
-                                    // Calcular cantidad seleccionada de este producto
                                     const cantidadSeleccionada = selectedProductos.filter(p => p.id === producto.id)
                                         .reduce((total, p) => total + (p.cantidad || 1), 0);
                                     
@@ -930,10 +992,9 @@ const Cuentas = () => {
                                         <button
                                             key={producto.id}
                                             onClick={() => handleAgregarProducto(producto)}
-                                            disabled={producto.cantidaddisponible === 0}
+                                            disabled={producto.cantidad_disponible === 0}
                                             className="group p-4 sm:p-5 border-3 border-emerald-300 rounded-2xl hover:border-emerald-500 hover:shadow-2xl hover:shadow-emerald-300/50 transition-all duration-300 hover:scale-105 bg-gradient-to-br from-white to-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed h-full flex flex-col items-start gap-2 shadow-lg hover:shadow-xl relative overflow-hidden"
                                         >
-                                            {/* BADGE SELECCIONADO CON CANTIDAD */}
                                             {cantidadSeleccionada > 0 && (
                                                 <div className="absolute top-2 right-2 flex items-center gap-1 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">
                                                     <span className="text-sm">✓</span>
@@ -949,15 +1010,14 @@ const Cuentas = () => {
                                                 ${formatDinero(producto.precio_venta || producto.precioventa)}
                                             </div>
                                             <div className="text-xs text-gray-500 flex items-center gap-1 z-10 relative pr-8 sm:pr-0">
-                                                Stock 
-                                                <span className="text-base font-semibold">{Math.trunc(producto.cantidad_disponible).toString()}</span>
+                                                Stock <span className="text-base font-semibold">{Math.trunc(producto.cantidad_disponible).toString()}</span>
                                             </div>
                                         </button>
                                     );
                                 })}
                             </div>
 
-                            {/*paginacion crear cuenta*/}
+                            {/* PAGINACIÓN INFERIOR */}
                             {productosPagination.totalPages > 1 && (
                                 <div className="flex items-center justify-end gap-2 pt-4 mb-2">
                                     <button
@@ -1110,89 +1170,91 @@ const Cuentas = () => {
             </>
         )}
 
-        {/* ✅ MODAL DETALLE */}
+        {/* ✅ MODAL DETALLE - CATEGORÍAS ARRIBA DE PAGINACIÓN SUPERIOR */}
         {showDetailModal && selectedCuenta && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] animate-in fade-in-0 zoom-in-95 duration-200">
-                <div className="fixed inset-0 z-[70] p-4 flex items-center justify-center">
-                    <div className="w-full max-w-6xl max-h-[95vh] flex flex-col bg-white rounded-3xl sm:rounded-[2rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-200">
-                        
-                        {/* HEADER PEQUEÑO FIJO */}
-                        <div className="p-4 sm:p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 flex-shrink-0">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h2 className="text-lg sm:text-xl font-bold text-gray-900">
-                                        Editar Cuenta #{selectedCuenta.id}
-                                    </h2>
-                                    <p className="text-base text-gray-600">
-                                        Total <span className="text-xl font-bold text-emerald-600">
-                                            ${formatDinero([...detalleProductos, ...editProductos].reduce((total, p) => total + (p.precio_venta || p.precioventa || 0) * (p.cantidad || 1), 0))}
-                                        </span>
-                                        ({detalleProductos.length + editProductos.length} productos)
-                                    </p>
-                                </div>
-                                <button onClick={handleCerrarDetalle} className="p-2 rounded-2xl hover:bg-gray-200 transition-all">
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
+            <div>
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] animate-in fade-in-0 zoom-in-95 duration-200" onClick={handleCerrarDetalle} />
+            <div className="fixed inset-0 z-[70] p-4 sm:p-6 flex items-center justify-center">
+                <div className="w-full max-w-6xl max-h-[95vh] flex flex-col bg-white rounded-3xl sm:rounded-[2rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-200">
+                    
+                    {/* HEADER PEQUEÑO FIJO */}
+                    <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 flex-shrink-0">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+                                    Editar Cuenta #{selectedCuenta.id}
+                                </h2>
+                                <p className="text-base text-gray-600">
+                                    Total <span className="text-xl font-bold text-emerald-600">
+                                        ${formatDinero([...detalleProductos, ...editProductos].reduce((total, p) => total + (p.precio_venta || p.precioventa || 0) * (p.cantidad || 1), 0))}
+                                    </span>
+                                    ({detalleProductos.length + editProductos.length} productos)
+                                </p>
                             </div>
-
-                            {/* FORM CABECERA COMPACTA */}
-                            <form className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">👤 Cliente *</label>
-                                    <input
-                                        className="w-full p-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                                        value={editForm.cliente}
-                                        onChange={(e) => setEditForm({ ...editForm, cliente: e.target.value })}
-                                        required
-                                        placeholder="Nombre del cliente"
-                                    />
-                                </div>
-                                {/* 2. Botones de Tipo de Cuenta */}
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                                        Tipo de Cuenta
-                                    </label>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <button
-                                            type="button"
-                                            onClick={() => handleEditTipoChange({ target: { value: 'individual' } })}
-                                            className={`flex items-center justify-center gap-2 py-3 px-2 rounded-xl border-2 transition-all duration-200 ${
-                                                editForm.tipo_cuenta === 'individual'
-                                                ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500'
-                                                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
-                                            }`}
-                                        >
-                                            <span className="text-base">👤</span>
-                                            <span className="font-medium text-sm">Individual</span>
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => handleEditTipoChange({ target: { value: 'mesa' } })}
-                                            className={`flex items-center justify-center gap-2 py-3 px-2 rounded-xl border-2 transition-all duration-200 ${
-                                                editForm.tipo_cuenta === 'mesa'
-                                                ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500'
-                                                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
-                                            }`}
-                                        >
-                                            <span className="text-base">🪑</span>
-                                            <span className="font-medium text-sm">Mesa</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
+                            <button onClick={handleCerrarDetalle} className="p-2 rounded-2xl hover:bg-gray-200 transition-all">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
                         </div>
 
-                        {/* CONTENIDO SCROLLABLE */}
-                        <div className="flex-1 overflow-y-auto min-h-0">
-                            
-                            {/* MESAS */}
-                            {editForm.tipo_cuenta === 'mesa' && (
-                                <div className="p-6 sm:p-8 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-amber-50">
-                                    <h3 className="text-xl font-bold mb-6 flex items-center gap-2">🪑 Seleccionar Mesa</h3>
-                                    {/* Paginacion mesas */}
+                        {/* FORM CABECERA - SIN CATEGORÍAS */}
+                        <form className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end mt-6">
+                            {/* 1. CLIENTE */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">👤 Cliente *</label>
+                                <input
+                                    className="w-full p-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                    value={editForm.cliente}
+                                    onChange={(e) => setEditForm({ ...editForm, cliente: e.target.value })}
+                                    required
+                                    placeholder="Nombre del cliente"
+                                />
+                            </div>
+
+                            {/* 2. TIPO DE CUENTA */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                    Tipo de Cuenta
+                                </label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleEditTipoChange({ target: { value: 'individual' } })}
+                                        className={`flex items-center justify-center gap-2 py-3 px-2 rounded-xl border-2 transition-all duration-200 ${
+                                            editForm.tipo_cuenta === 'individual'
+                                                ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500'
+                                                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                                        }`}
+                                    >
+                                        <span className="text-base">👤</span>
+                                        <span className="font-medium text-sm">Individual</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => handleEditTipoChange({ target: { value: 'mesa' } })}
+                                        className={`flex items-center justify-center gap-2 py-3 px-2 rounded-xl border-2 transition-all duration-200 ${
+                                            editForm.tipo_cuenta === 'mesa'
+                                                ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500'
+                                                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                                        }`}
+                                    >
+                                        <span className="text-base">🪑</span>
+                                        <span className="font-medium text-sm">Mesa</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    {/* CONTENIDO SCROLLABLE */}
+                    <div className="flex-1 overflow-y-auto min-h-0">
+                        {/* MESAS */}
+                        {editForm.tipo_cuenta === 'mesa' && (
+                            <div className="p-6 sm:p-8 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-amber-50">
+                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">🪑 Seleccionar Mesa</h3>
+                                {/* Paginacion mesas */}
                                     {mesasTotalPages > 1 && (
                                         <div className="flex items-center justify-end gap-2 pb-4 mb-2">
                                             <button 
@@ -1255,42 +1317,84 @@ const Cuentas = () => {
                                                 ›
                                             </button>
                                         </div>
-                                    )}                                                                   
+                                    )}   
+                            </div>
+                        )}
+
+                        {/* LISTA PRODUCTOS DESTACADA - CATEGORÍAS ARRIBA PAGINACIÓN */}
+                        <div className="p-6 sm:p-8 border-b-4 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
+                                <h3 className="text-base sm:text-2xl font-bold flex items-center gap-2 text-blue-800">
+                                    🛍️ Lista de Productos
+                                    <span className="text-sm sm:text-lg bg-blue-200 text-blue-800 px-3 py-1 rounded-full font-semibold">
+                                        {detalleProductos.length + editProductos.length} total
+                                    </span>
+                                </h3>
+                            </div>
+
+                            {/* ✅ PAGINACIÓN SUPERIOR */}
+                            {productosPagination.totalPages > 1 && (
+                                <div className="flex items-center justify-end gap-2 pb-4 mb-4">
+                                    <button
+                                        onClick={() => setProductosPage(Math.max(1, productosPage - 1))}
+                                        disabled={productosPage === 1}
+                                        className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
+                                    >
+                                        ‹
+                                    </button>
+                                    <button
+                                        onClick={() => setProductosPage(Math.min(productosPagination.totalPages || 1, productosPage + 1))}
+                                        disabled={productosPage === (productosPagination.totalPages || 1)}
+                                        className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
+                                    >
+                                        ›
+                                    </button>
                                 </div>
                             )}
 
-                            {/* LISTA PRODUCTOS DESTACADA */}
-                            <div className="p-6 sm:p-8 border-b-4 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                                    <h3 className="text-base sm:text-2xl font-bold flex items-center gap-2 text-blue-800">
-                                        🛍️ Lista de Productos
-                                        <span className="text-sm sm:text-lg bg-blue-200 text-blue-800 px-3 py-1 rounded-full font-semibold">
-                                            {detalleProductos.length + editProductos.length} total
-                                        </span>
-                                    </h3>
+                            {/* ✅ CATEGORÍAS JUSTO ARRIBA DEL GRID (PARA COHERENCIA) */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-semibold text-blue-700 mb-3">📂 Categorías</label>
+                                <div className="flex gap-2 overflow-x-auto pb-4 -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                                    {/* N/A */}
+                                    <button 
+                                        onClick={() => {
+                                            setCategoriaSeleccionada('N/A');
+                                            fetchProductos(1, 'N/A');
+                                            setProductosPage(1);
+                                        }}
+                                        className={`flex-none min-w-[60px] px-4 py-2.5 rounded-2xl font-bold text-sm whitespace-nowrap shadow-md transition-all duration-300 flex items-center justify-center hover:scale-[1.02] ${
+                                            categoriaSeleccionada === 'N/A'
+                                                ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-emerald-500/50 ring-2 ring-emerald-400/50'
+                                                : 'bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 text-gray-800 hover:shadow-emerald-100/50'
+                                        }`}
+                                    >
+                                        N/A
+                                    </button>
+                                    
+                                    {/* Categorías */}
+                                    {categorias.map((cat) => (
+                                        <button 
+                                            key={cat.id}
+                                            onClick={() => {
+                                                setCategoriaSeleccionada(cat.codigo);
+                                                fetchProductos(1, cat.codigo);
+                                                setProductosPage(1);
+                                            }}
+                                            className={`flex-none min-w-[80px] px-4 py-2.5 rounded-2xl font-bold text-sm whitespace-nowrap shadow-md transition-all duration-300 flex items-center justify-center hover:scale-[1.02] ${
+                                                categoriaSeleccionada === cat.codigo
+                                                    ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-emerald-500/50 ring-2 ring-emerald-400/50'
+                                                    : 'bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 text-gray-800 hover:shadow-emerald-100/50'
+                                            }`}
+                                        >
+                                            {cat.codigo}
+                                        </button>
+                                    ))}
                                 </div>
+                            </div>
 
-                                {/* PAGINACIÓN SUPERIOR */}
-                                {productosPagination.totalPages > 1 && (
-                                    <div className="flex items-center justify-end gap-2 pb-4 mb-2">
-                                        <button
-                                            onClick={() => setProductosPage(Math.max(1, productosPage - 1))}
-                                            disabled={productosPage === 1}
-                                            className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                        >
-                                            ‹
-                                        </button>
-                                        <button
-                                            onClick={() => setProductosPage(Math.min(productosPagination.totalPages || 1, productosPage + 1))}
-                                            disabled={productosPage === (productosPagination.totalPages || 1)}
-                                            className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                        >
-                                            ›
-                                        </button>
-                                    </div>
-                                )}
-
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                            {/* GRID PRODUCTOS */}
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                                     {productos.map(producto => {
                                         // 1. Buscamos el producto en ambos arrays
                                         const enDetalle = detalleProductos.find(p => p.id === producto.id);
@@ -1329,7 +1433,7 @@ const Cuentas = () => {
                                     })}
                                 </div>
 
-                                {/* PAGINACIÓN*/}
+                            {/* PAGINACIÓN*/}
                                 {productosPagination.totalPages > 1 && (
                                     <div className="flex items-center justify-end gap-2 pt-4 mb-2">
                                         <button
@@ -1346,62 +1450,59 @@ const Cuentas = () => {
                                         >
                                             ›
                                         </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {(detalleProductos.length > 0 || editProductos.length > 0) && (
+                            <div className="p-6 sm:p-8 border-b border-gray-100 bg-gray-50">
+                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-gray-800">
+                                    📋 Detalles de Productos ({detalleProductos.length + editProductos.length})
+                                </h3>
+                                <div className="space-y-4">
+                                    {/* NUEVOS */}
+                                    {editProductos.map(producto => (
+                                        <div key={producto.id} className="bg-white/80 p-5 rounded-2xl border-l-4 border-emerald-400 shadow-sm hover:shadow-md transition-all flex flex-col lg:flex-row lg:items-center lg:gap-6">
+                                            <div className="flex-1 mb-6 lg:mb-0 lg:mr-6">
+                                                <p className="font-bold text-lg text-gray-900 line-clamp-2">{producto.descripcion}</p>
+                                                <p className="text-base text-gray-600 mt-1">{producto.presentacion}</p>
+                                                {producto.promocion_activa && (
+                                                    <p className="inline-flex items-center gap-1 mt-2 px-3 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-800">
+                                                        🎉 {producto.promocion_activa.nombre_promocion}{' '}
+                                                        <span className="font-normal">({formatDinero(producto.promocion_activa.nuevo_precio_venta)} c/u)</span>
+                                                    </p>
+                                                )}                                                  
                                     </div>
-                                )}
-                            </div>
-
-                            {/* DETALLES DE PRODUCTOS */}
-                            {(detalleProductos.length > 0 || editProductos.length > 0) && (
-                                <div className="p-6 sm:p-8 border-b border-gray-100 bg-gray-50">
-                                    <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-gray-800">
-                                        📋 Detalles de Productos ({detalleProductos.length + editProductos.length})
-                                    </h3>
-                                    <div className="space-y-4">
-                                        {/* NUEVOS */}
-                                        {editProductos.map(producto => (
-                                            <div key={producto.id} className="bg-white/80 p-5 rounded-2xl border-l-4 border-emerald-400 shadow-sm hover:shadow-md transition-all flex flex-col lg:flex-row lg:items-center lg:gap-6">
-                                                <div className="flex-1 mb-6 lg:mb-0 lg:mr-6">
-                                                    <p className="font-bold text-lg text-gray-900 line-clamp-2">{producto.descripcion}</p>
-                                                    <p className="text-base text-gray-600 mt-1">{producto.presentacion}</p>
-                                                    {producto.promocion_activa && (
-                                                        <p className="inline-flex items-center gap-1 mt-2 px-3 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-800">
-                                                            🎉 {producto.promocion_activa.nombre_promocion}{' '}
-                                                            <span className="font-normal">({formatDinero(producto.promocion_activa.nuevo_precio_venta)} c/u)</span>
-                                                        </p>
-                                                    )}
-                                                </div>
-
-                                                {promocionesPorProductoDetalle[producto.id] && (
-                                                    <div className="flex flex-wrap gap-1 lg:gap-2 mb-4 lg:mb-0 lg:w-32 order-1 lg:order-none">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handlePromocionChangeEdit(producto.id, null)}
-                                                            className={`px-3 py-2 m-1.5 md:m-0  rounded-full text-base font-medium transition-all shadow-md flex-shrink-0 ${
-                                                                !producto.promocion_activa
-                                                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-purple-500/50 scale-105'
-                                                                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:shadow-lg'
-                                                            }`}
-                                                        >
-                                                            💰 Individual
-                                                        </button>
-                                                        {promocionesPorProductoDetalle[producto.id].map((promo) => (
-                                                            <button
-                                                                key={promo.id}
-                                                                type="button"
-                                                                onClick={() => handlePromocionChangeEdit(producto.id, promo)}
-                                                                className={`px-3 py-2 m-1.5 md:m-0 rounded-full text-base font-medium transition-all shadow-md flex-shrink-0 ${
-                                                                    producto.promocion_activa?.id == promo.id
-                                                                        ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-emerald-500/50 scale-105'
-                                                                        : 'bg-orange-100 text-orange-800 hover:bg-orange-200 hover:shadow-lg'
-                                                                }`}
-                                                            >
-                                                                {promo.nombre_promocion}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                )}
-
-                                                <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-4 w-full lg:w-auto order-last lg:order-none">
+                                    {promocionesPorProductoDetalle[producto.id] && (
+                                        <div className="flex flex-wrap gap-1 lg:gap-2 mb-4 lg:mb-0 lg:w-32 order-1 lg:order-none">
+                                            <button
+                                                type="button"
+                                                onClick={() => handlePromocionChangeEdit(producto.id, null)}
+                                                className={`px-3 py-2 m-1.5 md:m-0  rounded-full text-base font-medium transition-all shadow-md flex-shrink-0 ${
+                                                    !producto.promocion_activa
+                                                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-purple-500/50 scale-105'
+                                                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:shadow-lg'
+                                                }`}
+                                            >
+                                                💰 Individual
+                                            </button>
+                                            {promocionesPorProductoDetalle[producto.id].map((promo) => (
+                                                <button
+                                                    key={promo.id}
+                                                    type="button"
+                                                    onClick={() => handlePromocionChangeEdit(producto.id, promo)}
+                                                    className={`px-3 py-2 m-1.5 md:m-0 rounded-full text-base font-medium transition-all shadow-md flex-shrink-0 ${
+                                                        producto.promocion_activa?.id == promo.id
+                                                            ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-emerald-500/50 scale-105'
+                                                            : 'bg-orange-100 text-orange-800 hover:bg-orange-200 hover:shadow-lg'
+                                                    }`}
+                                                >
+                                                    {promo.nombre_promocion}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-4 w-full lg:w-auto order-last lg:order-none">
                                                     <div className="flex items-center justify-center gap-3 bg-white p-2 rounded-xl border shadow-sm">
                                                         <button
                                                             onClick={() => handleDisminuirCantidadEdit(producto.id)}
@@ -1418,8 +1519,8 @@ const Cuentas = () => {
                                                         >
                                                             +
                                                         </button>
-                                                    </div>
-                                                    <div className="flex items-end lg:items-center gap-3">
+                                    </div>
+                                    <div className="flex items-end lg:items-center gap-3">
                                                         <span className="font-bold text-2xl text-emerald-600 min-w-[80px] text-right lg:text-left">
                                                             ${formatDinero((producto.precio_venta || producto.precioventa || 0) * (producto.cantidad || 1))}
                                                         </span>
@@ -1517,8 +1618,8 @@ const Cuentas = () => {
                             )}
                         </div>
 
-                        {/* BOTONES MÁS PEQUEÑOS EN MÓVIL */}
-                        <div className="p-4 sm:p-8 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-center">
+                    {/* BOTONES */}
+                    <div className="p-4 sm:p-8 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-center">
                             <button
                                 onClick={handleCerrarDetalle}
                                 className="flex-1 sm:flex-none w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 border border-gray-300 text-gray-700 font-semibold text-sm sm:text-base rounded-xl sm:rounded-2xl hover:bg-gray-50 hover:shadow-md transition-all duration-200"
@@ -1546,6 +1647,7 @@ const Cuentas = () => {
                     </div>
                 </div>
             </div>
+            
         )}
         <CorteCajaModal 
                 isOpen={showCorteModal} 

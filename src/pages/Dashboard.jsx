@@ -210,7 +210,7 @@ const Dashboard = () => {
                         <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                             📦 Stock Crítico
                             <span className="px-3 sm:px-5 py-1.5 sm:py-2 bg-red-100 text-red-800 text-base sm:text-lg font-bold rounded-xl sm:rounded-2xl shadow-lg whitespace-nowrap">
-                                {dashboard?.stockCritico || 0}
+                                {parseInt(dashboard?.stockCritico) || 0}
                             </span>
                         </h3>
                         <div className="space-y-3 sm:space-y-4 max-h-80 sm:max-h-96 lg:max-h-[inherit] overflow-y-auto">
@@ -232,9 +232,9 @@ const Dashboard = () => {
                                             producto.status === 'danger' ? 'text-red-600' :
                                             producto.status === 'warning' ? 'text-orange-600' : 'text-emerald-600'
                                         }`}>
-                                            {formatDinero(producto.cantidad_disponible)}
+                                            {parseInt(producto.cantidad_disponible)}
                                         </p>
-                                        <p className="text-xs sm:text-xs text-gray-500">mín: {formatDinero(producto.cantidad_minima)}</p>
+                                        <p className="text-xs sm:text-xs text-gray-500">mín: {parseInt(producto.cantidad_minima)}</p>
                                     </div>
                                 </div>
                             ))}

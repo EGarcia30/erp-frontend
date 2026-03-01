@@ -34,6 +34,10 @@ const GastosOperativos = () => {
     const [gastosPagination, setGastosPagination] = useState({ totalPages: 1 });
     const [updatingGasto, setUpdatingGasto] = useState(null);
 
+    //categorias productos
+    const [categorias, setCategorias] = useState([]);
+    const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('N/A');
+
     const handleAprobarGasto = async (gastoId) => {
         try {
             setUpdatingGasto(gastoId);
@@ -110,10 +114,28 @@ const GastosOperativos = () => {
         fetchGastos(gastosPage);
     }, [gastosPage, fetchGastos]);
 
-    // Fetch productos con paginación
-    const fetchProductos = async (currentPage = 1) => {
+    // ✅ Cargar categorías al abrir modal
+    const fetchCategorias = async () => {
         try {
-        const response = await fetch(`${apiURL}/productos?page=${currentPage}&limit=10`);
+            const response = await fetch(`${apiURL}/categorias`);
+            const data = await response.json();
+            if (data.success) {
+                setCategorias(data.data);
+            }
+        } catch (error) {
+            console.error('Error cargando categorías:', error);
+        }
+    };
+
+    // Fetch productos con paginación
+    const fetchProductos = async (currentPage = 1, categoria = 'N/A') => {
+        try {
+        const params = new URLSearchParams({
+            page: currentPage,
+            limit: 10,
+            categoria: categoria
+        });
+        const response = await fetch(`${apiURL}/productos?${params}`);
         const data = await response.json();
         if (data.success) {
             setProductos(data.data);
@@ -126,14 +148,15 @@ const GastosOperativos = () => {
 
     // AGREGAR useEffect para paginación
     useEffect(() => {
-        fetchProductos(productosPage);
-    }, [productosPage, fetchProductos]);
+        fetchProductos(productosPage, categoriaSeleccionada);
+    }, [productosPage, fetchProductos, categoriaSeleccionada]);
+
 
     // useEffect original (modificar)
     useEffect(() => {
-    if (showCreateModal || showEditModal) {
-        fetchProductos(1); // Empezar en página 1
-    }
+        if (showCreateModal || showEditModal) {
+            fetchProductos(1, categoriaSeleccionada); // Empezar en página 1
+        }
     }, [showCreateModal, showEditModal]);
 
     // Effects
@@ -152,7 +175,7 @@ const GastosOperativos = () => {
 
     useEffect(() => {
         if (showCreateModal || showEditModal) {
-        fetchProductos();
+        fetchProductos(1, categoriaSeleccionada); // Empezar en página 1
         }
     }, [showCreateModal, showEditModal]);
 
@@ -288,6 +311,7 @@ const GastosOperativos = () => {
             })));
             
             // Reset paginación
+            setCategoriaSeleccionada('N/A');
             setProductosPage(1);
             }
         } catch (error) {
@@ -389,6 +413,9 @@ const GastosOperativos = () => {
             <button
                 onClick={() => {
                 setShowCreateModal(true);
+                fetchProductos(1); // Reset paginación productos
+                fetchCategorias(); // Recargar categorías
+                setCategoriaSeleccionada('N/A'); // Reset categoría
                 resetForm();
                 }}
                 className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-3 text-lg"
@@ -620,6 +647,8 @@ const GastosOperativos = () => {
             onClick={() => {
                 setShowCreateModal(false);
                 setShowEditModal(false);
+                fetchProductos(1); // Reset paginación productos
+                fetchCategorias(); // Recargar categorías
                 resetForm();
             }} 
             />
@@ -712,24 +741,59 @@ const GastosOperativos = () => {
                 </div>
 
                 {/* PAGINACIÓN SUPERIOR */}
-                {productosPagination.totalPages > 1 && (
-                    <div className="flex items-center justify-end gap-2 pb-4 mb-2">
-                    <button
-                        onClick={() => setProductosPage(Math.max(1, productosPage - 1))}
-                        disabled={productosPage === 1}
-                        className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                    >
-                        ‹
-                    </button>
-                    <button
-                        onClick={() => setProductosPage(Math.min(productosPagination.totalPages || 1, productosPage + 1))}
-                        disabled={productosPage === (productosPagination.totalPages || 1)}
-                        className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                    >
-                        ›
-                    </button>
-                    </div>
-                )}
+                <div className="mb-6 space-y-3">
+                    {productosPagination.totalPages > 1 && (
+                        <div className="flex items-center justify-end gap-2 pb-4 mb-2">
+                        <button
+                            onClick={() => setProductosPage(Math.max(1, productosPage - 1))}
+                            disabled={productosPage === 1}
+                            className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
+                        >
+                            ‹
+                        </button>
+                        <button
+                            onClick={() => setProductosPage(Math.min(productosPagination.totalPages || 1, productosPage + 1))}
+                            disabled={productosPage === (productosPagination.totalPages || 1)}
+                            className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
+                        >
+                            ›
+                        </button>
+                        </div>
+                    )}
+                    {/* CATEGORÍAS - Scroll horizontal NATURAL */}
+                        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+                            {/* N/A */}
+                            <button onClick={() => {
+                                    setCategoriaSeleccionada('N/A');
+                                    fetchProductos(1, 'N/A');
+                                    setProductosPage(1);
+                                }}
+                                className={`flex-none px-3 py-2 rounded-xl font-semibold text-sm whitespace-nowrap ${
+                                    categoriaSeleccionada === 'N/A'
+                                        ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg'
+                                        : 'bg-white hover:bg-emerald-50 text-gray-700 border border-gray-200 hover:shadow-md'
+                                }`}>
+                                N/A
+                            </button>
+                            
+                            {/* Categorías */}
+                            {categorias.map((cat) => (
+                                <button key={cat.id}
+                                        onClick={() => {
+                                            setCategoriaSeleccionada(cat.codigo);
+                                            fetchProductos(1, cat.codigo);
+                                            setProductosPage(1);
+                                        }}
+                                        className={`flex-none px-3 py-2 rounded-xl font-semibold text-sm whitespace-nowrap flex items-center gap-1 ${
+                                            categoriaSeleccionada === cat.codigo
+                                                ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg'
+                                                : 'bg-white hover:bg-emerald-50 text-gray-700 border border-gray-200 hover:shadow-md'
+                                        }`}>
+                                    {cat.codigo}
+                                </button>
+                            ))}
+                        </div>
+                </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                     {productos.map(producto => {

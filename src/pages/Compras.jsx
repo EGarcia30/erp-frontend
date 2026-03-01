@@ -26,6 +26,10 @@ const Compras = () => {
     const [selectedCompra, setSelectedCompra] = useState(null);
     const [loadingDetail, setLoadingDetail] = useState(false);
 
+    //categorias productos
+    const [categorias, setCategorias] = useState([]);
+    const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('N/A');
+
     // ✅ FORMATEAR DINERO - 2 DECIMALES SIEMPRE
     const formatDinero = (numero) => {
         return Number(numero ?? 0).toLocaleString('es-SV', { 
@@ -51,10 +55,28 @@ const Compras = () => {
         }
     };
 
-    // PAGINACIÓN PRODUCTOS
-    const fetchProductos = async (currentPage = 1) => {
+    // ✅ Cargar categorías al abrir modal
+    const fetchCategorias = async () => {
         try {
-            const response = await fetch(`${apiURL}/productos?page=${currentPage}&limit=10`);
+            const response = await fetch(`${apiURL}/categorias`);
+            const data = await response.json();
+            if (data.success) {
+                setCategorias(data.data);
+            }
+        } catch (error) {
+            console.error('Error cargando categorías:', error);
+        }
+    };
+
+    // PAGINACIÓN PRODUCTOS
+    const fetchProductos = async (currentPage = 1, categoria = 'N/A') => {
+        try {
+            const params = new URLSearchParams({
+                page: currentPage,
+                limit: 10,
+                categoria: categoria
+            });
+            const response = await fetch(`${apiURL}/productos?${params}`);
             const data = await response.json();
             if (data.success) {
                 setProductos(data.data);
@@ -88,9 +110,9 @@ const Compras = () => {
 
     useEffect(() => {
         if (showCreateModal) {
-            fetchProductos(productosPage);
+            fetchProductos(productosPage, categoriaSeleccionada);
         }
-    }, [showCreateModal, productosPage]);
+    }, [showCreateModal, productosPage, categoriaSeleccionada]);
 
     // CERRAR MODAL CREAR
     const handleCerrarModal = () => {
@@ -98,6 +120,7 @@ const Compras = () => {
         setSelectedProductos([]);
         setCreateForm({ proveedor: '', direccion: '', total: 0 });
         setProductosPage(1);
+        setCategoriaSeleccionada('N/A');
     };
 
     // AUMENTAR/DISMINUIR/BORRAR - SIN CAMBIOS
@@ -222,7 +245,9 @@ const Compras = () => {
                             onClick={() => {
                                 setShowCreateModal(true);
                                 setProductosPage(1);
-                                fetchProductos(1);
+                                fetchProductos(1, 'N/A');
+                                fetchCategorias();
+                                setCategoriaSeleccionada('N/A');
                             }}
                             className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-2.5 px-6 sm:py-3 sm:px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base"
                         >
@@ -528,54 +553,159 @@ const Compras = () => {
                     <div className="fixed inset-0 z-[60] p-4 sm:p-6 flex items-center justify-center">
                         <div className="w-full max-w-md sm:max-w-2xl md:max-w-4xl max-h-[95vh] flex flex-col bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
                             
-                            {/* ✅ HEADER FIJO */}
-                            <div className="p-6 sm:p-8 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-green-50 flex-shrink-0">
-                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                                    <div>
-                                        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Nueva Compra</h2>
-                                        <p className="text-sm sm:text-base text-gray-600 mt-1">Selecciona productos y completa la información</p>
+                            {/* ✅ HEADER FIJO MÁS COMPACTO */}
+                            <div className="p-4 sm:p-6 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-green-50 flex-shrink-0">
+                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-3">
+                                    <div className="space-y-1">
+                                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight">Nueva Compra</h2>
+                                        <p className="text-xs sm:text-sm text-gray-600">Selecciona productos y completa la información</p>
                                     </div>
                                     <button 
                                         onClick={handleCerrarModal} 
-                                        className="text-gray-400 hover:text-gray-600 p-2 rounded-xl hover:bg-gray-100 transition-all w-10 h-10 flex items-center justify-center sm:ml-auto self-start sm:self-auto"
+                                        className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-all w-9 h-9 flex items-center justify-center sm:ml-auto self-start sm:self-auto shrink-0"
                                     >
-                                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     </button>
                                 </div>
 
-                                {/* ✅ FORM CABECERA */}
-                                <form onSubmit={handleCrearCompra} className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                                {/* ✅ FORM CABECERA COMPACTO */}
+                                <form onSubmit={handleCrearCompra} className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                     <div>
-                                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">Proveedor *</label>
+                                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Proveedor *</label>
                                         <input
-                                            className="w-full p-3 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                            className="w-full p-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
                                             value={createForm.proveedor}
                                             onChange={(e) => setCreateForm({...createForm, proveedor: e.target.value})}
                                             required
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">Dirección</label>
+                                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Dirección</label>
                                         <input
-                                            className="w-full p-3 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                            className="w-full p-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
                                             value={createForm.direccion}
                                             onChange={(e) => setCreateForm({...createForm, direccion: e.target.value})}
                                         />
-                                    </div>
-                                    <div className="flex flex-col sm:flex-col-reverse sm:items-end md:items-end gap-1">
-                                        <span className="text-xs sm:text-sm text-gray-500 text-right">Total seleccionados</span>
-                                        <div className="text-lg sm:text-2xl font-bold text-emerald-600">
-                                            ${calcularTotal().toLocaleString('es-SV', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                        </div>
                                     </div>
                                 </form>
                             </div>
 
                             {/* ✅ CONTENIDO SCROLLABLE */}
                             <div className="flex-1 overflow-y-auto">
-                                
+                                {/* ✅ LISTA PRODUCTOS + BOTÓN CREAR */}
+                                <div className="p-4 sm:p-6">   
+                                    <div className="mb-6 space-y-3">
+                                        {/* PAGINACIÓN */}
+                                        {productosPagination.totalPages > 1 && (
+                                            <div className="flex items-center justify-end gap-1 sm:gap-2 pt-4 pb-6">
+                                                <button
+                                                    onClick={() => setProductosPage(Math.max(1, productosPage - 1))}
+                                                    disabled={productosPage <= 1}
+                                                    className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center text-sm sm:text-base"
+                                                >
+                                                    ‹
+                                                </button>                                            
+                                                <button
+                                                    onClick={() => setProductosPage(Math.min(productosPagination.totalPages, productosPage + 1))}
+                                                    disabled={productosPage >= productosPagination.totalPages}
+                                                    className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center text-sm sm:text-base"
+                                                >
+                                                    ›
+                                                </button>
+                                            </div>
+                                        )}
+                                        {/* CATEGORÍAS - Scroll horizontal NATURAL */}
+                                        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+                                            {/* N/A */}
+                                            <button onClick={() => {
+                                                    setCategoriaSeleccionada('N/A');
+                                                    fetchProductos(1, 'N/A');
+                                                    setProductosPage(1);
+                                                }}
+                                                className={`flex-none px-3 py-2 rounded-xl font-semibold text-sm whitespace-nowrap ${
+                                                    categoriaSeleccionada === 'N/A'
+                                                        ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg'
+                                                        : 'bg-white hover:bg-emerald-50 text-gray-700 border border-gray-200 hover:shadow-md'
+                                                }`}>
+                                                N/A
+                                            </button>
+                                            
+                                            {/* Categorías */}
+                                            {categorias.map((cat) => (
+                                                <button key={cat.id}
+                                                        onClick={() => {
+                                                            setCategoriaSeleccionada(cat.codigo);
+                                                            fetchProductos(1, cat.codigo);
+                                                            setProductosPage(1);
+                                                        }}
+                                                        className={`flex-none px-3 py-2 rounded-xl font-semibold text-sm whitespace-nowrap flex items-center gap-1 ${
+                                                            categoriaSeleccionada === cat.codigo
+                                                                ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg'
+                                                                : 'bg-white hover:bg-emerald-50 text-gray-700 border border-gray-200 hover:shadow-md'
+                                                        }`}>
+                                                    {cat.codigo}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>                                 
+
+                                    {/* BOTONES PRODUCTOS - ESTILO PREMIUM */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-6">
+                                        {productos.map(producto => {
+                                            const cantidadSeleccionada = selectedProductos.filter(p => p.id === producto.id)
+                                                .reduce((total, p) => total + (p.cantidad || 1), 0);
+                                            
+                                            return (
+                                                <button
+                                                    key={producto.id}
+                                                    onClick={() => handleAgregarProducto(producto)}
+                                                    disabled={producto.cantidad_disponible === 0}
+                                                    className="group p-4 sm:p-5 border-3 border-emerald-300 rounded-2xl hover:border-emerald-500 hover:shadow-2xl hover:shadow-emerald-300/50 transition-all duration-300 hover:scale-105 bg-gradient-to-br from-white to-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed h-full flex flex-col items-start gap-2 shadow-lg hover:shadow-xl relative overflow-hidden"
+                                                >
+                                                    {cantidadSeleccionada > 0 && (
+                                                        <div className="absolute top-2 right-2 flex items-center gap-1 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">
+                                                            <span className="text-sm">✓</span>
+                                                            <span>{parseInt(cantidadSeleccionada)}</span>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    <div className="font-bold text-sm sm:text-base line-clamp-2 group-hover:text-emerald-700 leading-tight h-12 z-10 relative pr-8 sm:pr-0">
+                                                        {producto.descripcion}
+                                                    </div>
+                                                    <div className="text-sm sm:text-base text-gray-600 z-10 relative pr-8 sm:pr-0">{producto.presentacion}</div>
+                                                    <div className="font-bold text-emerald-600 text-lg sm:text-xl w-full text-left z-10 relative pr-8 sm:pr-0">
+                                                        ${producto.precio_compra.toLocaleString('es-SV')}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 flex items-center gap-1 z-10 relative pr-8 sm:pr-0">
+                                                        Stock <span className="text-base font-semibold">{parseInt(producto.cantidad_disponible)}</span>
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* PAGINACIÓN */}
+                                    {productosPagination.totalPages > 1 && (
+                                        <div className="flex items-center justify-end gap-1 sm:gap-2 pt-4 pb-6">
+                                            <button
+                                                onClick={() => setProductosPage(Math.max(1, productosPage - 1))}
+                                                disabled={productosPage <= 1}
+                                                className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center text-sm sm:text-base"
+                                            >
+                                                ‹
+                                            </button>
+                                            <button
+                                                onClick={() => setProductosPage(Math.min(productosPagination.totalPages, productosPage + 1))}
+                                                disabled={productosPage >= productosPagination.totalPages}
+                                                className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center text-sm sm:text-base"
+                                            >
+                                                ›
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                                 {/* PRODUCTOS SELECCIONADOS */}
                                 {selectedProductos.length > 0 && (
                                     <div className="p-4 sm:p-6 border-b border-gray-100 bg-gray-50">
@@ -637,86 +767,40 @@ const Compras = () => {
                                         </div>
                                     </div>
                                 )}
-
-                                {/* ✅ LISTA PRODUCTOS + BOTÓN CREAR */}
-                                <div className="p-4 sm:p-6">
-                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                                        <h3 className="font-bold text-base sm:text-lg">
-                                            Página {productosPage} de {productosPagination.totalPages || 1}
-                                        </h3>
-                                        <button
-                                            type="button"
-                                            onClick={handleCrearCompra}
-                                            disabled={selectedProductos.length === 0 || updating === 'new'}
-                                            className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 disabled:opacity-50 w-full sm:w-auto order-last sm:order-first"
-                                        >
-                                            {updating === 'new' ? 'Creando...' : `✅ Crear Compra (${selectedProductos.length})`}
-                                        </button>
-                                    </div>
-
-                                    {/* PAGINACIÓN */}
-                                    {productosPagination.totalPages > 1 && (
-                                        <div className="flex items-center justify-end gap-1 sm:gap-2 pt-4 pb-6">
-                                            <button
-                                                onClick={() => setProductosPage(Math.max(1, productosPage - 1))}
-                                                disabled={productosPage <= 1}
-                                                className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center text-sm sm:text-base"
-                                            >
-                                                ‹
-                                            </button>                                            
-                                            <button
-                                                onClick={() => setProductosPage(Math.min(productosPagination.totalPages, productosPage + 1))}
-                                                disabled={productosPage >= productosPagination.totalPages}
-                                                className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center text-sm sm:text-base"
-                                            >
-                                                ›
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {/* BOTONES PRODUCTOS */}
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 mb-6">
-                                        {productos.map(producto => (
-                                            <button
-                                                key={producto.id}
-                                                onClick={() => handleAgregarProducto(producto)}
-                                                className="group p-3 sm:p-4 border-2 border-gray-200 rounded-xl hover:border-emerald-400 hover:shadow-md transition-all duration-200 hover:scale-105 bg-white disabled:opacity-50 disabled:cursor-not-allowed h-full flex flex-col items-start"
-                                            >
-                                                <div className="font-semibold text-xs sm:text-sm mb-1 line-clamp-2 group-hover:text-emerald-700 leading-tight">
-                                                    {producto.descripcion}
-                                                </div>
-                                                <div className="text-xs text-gray-600 mb-2">{producto.presentacion}</div>
-                                                <div className="font-bold text-emerald-600 text-sm sm:text-base mb-1">
-                                                    ${producto.precio_compra.toLocaleString('es-SV')}
-                                                </div>
-                                                <div className="text-xs text-gray-500">
-                                                    Stock: {producto.cantidad_disponible}
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    {/* PAGINACIÓN */}
-                                    {productosPagination.totalPages > 1 && (
-                                        <div className="flex items-center justify-end gap-1 sm:gap-2 pt-4 pb-6">
-                                            <button
-                                                onClick={() => setProductosPage(Math.max(1, productosPage - 1))}
-                                                disabled={productosPage <= 1}
-                                                className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center text-sm sm:text-base"
-                                            >
-                                                ‹
-                                            </button>
-                                            <button
-                                                onClick={() => setProductosPage(Math.min(productosPagination.totalPages, productosPage + 1))}
-                                                disabled={productosPage >= productosPagination.totalPages}
-                                                className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center text-sm sm:text-base"
-                                            >
-                                                ›
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
                             </div>
+                            {/* ✅ botones */}
+                            <div className="p-4 sm:p-6 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-center">
+                                <button
+                                    type="button"
+                                    onClick={handleCerrarModal}  // ← Agrega tu función de cancelar aquí
+                                    className="flex-1 sm:flex-none w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 border border-gray-300 text-gray-700 font-semibold text-sm sm:text-base rounded-xl sm:rounded-2xl hover:bg-gray-50 hover:shadow-md transition-all duration-200"
+                                >
+                                    Cancelar
+                                </button>
+                                
+                                <button
+                                    type="button"
+                                    onClick={handleCrearCompra}
+                                    disabled={selectedProductos.length === 0 || updating === 'new'}
+                                    className="flex-1 sm:flex-none w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 disabled:shadow-none text-sm sm:text-base"
+                                >
+                                    {updating === 'new' ? (
+                                        <>
+                                            <svg className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                            </svg>
+                                            Creando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            ✅ Crear Compra 
+                                            <span className="text-base sm:text-lg font-bold">{selectedProductos.length}</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+
                         </div>
                     </div>
                 </>

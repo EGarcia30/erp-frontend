@@ -20,8 +20,11 @@ const Productos = () => {
         cantidad_minima: 0,
         cantidad_maxima: 0,
         precio_compra: 0,
-        precio_venta: 0
+        precio_venta: 0,
+        categoria_id: 1  // ✅ Default categoría General
     });
+    const [categorias, setCategorias] = useState([]); // ✅ Estado categorías
+
 
     //Editar Producto
     const [showEditModal, setShowEditModal] = useState(false);
@@ -34,7 +37,7 @@ const Productos = () => {
 
     // ✅ HANDLER ABRIR EDITAR
     const handleEditar = (producto) => {
-        setEditProduct(producto);
+        console.log(producto)
         setEditForm({
             descripcion: producto.descripcion || '',
             proveedor: producto.proveedor || '',
@@ -43,8 +46,10 @@ const Productos = () => {
             cantidad_minima: producto.cantidad_minima || 0,
             cantidad_maxima: producto.cantidad_maxima || 0,
             precio_compra: producto.precio_compra || 0,
-            precio_venta: producto.precio_venta || 0
+            precio_venta: producto.precio_venta || 0,
+            categoria_id: producto.categoria_id || 1
         });
+        setEditProduct(producto);
         setShowEditModal(true);
     };
 
@@ -64,9 +69,26 @@ const Productos = () => {
             cantidad_minima: 0,
             cantidad_maxima: 0,
             precio_compra: 0,
-            precio_venta: 0
+            precio_venta: 0,
+            categoria_id: 1
         });
         setShowCreateModal(true);
+    };
+
+    useEffect(() => {
+        fetchCategorias();
+    }, []);
+
+    const fetchCategorias = async () => {
+        try {
+            const response = await fetch(`${apiURL}/categorias`);
+            const data = await response.json();
+            if (data.success) {
+                setCategorias(data.data);
+            }
+        } catch (error) {
+            console.error('Error cargando categorías:', error);
+        }
     };
 
     // ✅ GUARDAR NUEVO PRODUCTO
@@ -311,7 +333,7 @@ const Productos = () => {
                     </>
                 )}
 
-                {/* ✅ MODAL CREAR PRODUCTO */}
+                {/* ✅ MODAL CREAR PRODUCTO CON CATEGORÍAS */}
                 {showCreateModal && (
                     <>
                         <div 
@@ -366,6 +388,31 @@ const Productos = () => {
                                         </div>
                                     </div>
 
+                                    {/* ✅ NUEVO: SELECTOR CATEGORÍAS */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Categoría *</label>
+                                        <div className="relative">
+                                            <select
+                                                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm appearance-none bg-white"
+                                                value={createForm.categoria_id}
+                                                onChange={(e) => setCreateForm({...createForm, categoria_id: parseInt(e.target.value)})}
+                                                required
+                                            >
+                                                <option value="">Selecciona una categoría</option>
+                                                {categorias.map((cat) => (
+                                                    <option key={cat.id} value={cat.id}>
+                                                        {cat.codigo} - {cat.nombre}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     {/* Stock */}
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                         <div>
@@ -403,24 +450,23 @@ const Productos = () => {
                                         </div>
                                     </div>
 
-
                                     {/* Precios */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">Precio Compra *</label>
                                             <input
-                                                type="number" min="0" step="0.01"
+                                                type="number"
                                                 className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 text-sm"
                                                 value={createForm.precio_compra}
                                                 onChange={(e) => setCreateForm({...createForm, precio_compra: parseFloat(e.target.value) || 0})}
                                                 placeholder="0.75"
                                                 required
-                                            />
+                                            />  
                                         </div>
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">Precio Venta *</label>
                                             <input
-                                                type="number" min="0" step="0.01"
+                                                type="number"
                                                 className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 text-sm"
                                                 value={createForm.precio_venta}
                                                 onChange={(e) => setCreateForm({...createForm, precio_venta: parseFloat(e.target.value) || 0})}
@@ -457,10 +503,10 @@ const Productos = () => {
                     </>
                 )}
 
-                {/* ✅ MODAL EDITAR */}
+                {/* ✅ MODAL EDITAR PRODUCTO COMPLETO - CON CATEGORÍA */}
                 {showEditModal && (
                     <>
-                        <div 
+                        <div
                             className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[60]"
                             onClick={handleCerrarEditar}
                         />
@@ -479,7 +525,6 @@ const Productos = () => {
                                 </div>
 
                                 <form onSubmit={handleGuardar} className="space-y-4">
-                                    {/* TU FORMULARIO EXACTO pero con clases mejoradas */}
                                     {/* 1. DESCRIPCIÓN */}
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2">Descripción *</label>
@@ -493,7 +538,7 @@ const Productos = () => {
                                         />
                                     </div>
 
-                                    {/* 2. PROVEEDOR + PRESENTACIÓN */}
+                                    {/* 2. PROVEEDOR + PRESENTACIÓN + CATEGORÍA */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">Proveedor</label>
@@ -514,6 +559,31 @@ const Productos = () => {
                                                 placeholder="Botella 355ml"
                                                 maxLength={30}
                                             />
+                                        </div>
+                                    </div>
+
+                                    {/* ✅ SELECTOR CATEGORÍAS */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Categoría *</label>
+                                        <div className="relative">
+                                            <select
+                                                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm appearance-none bg-white"
+                                                value={editForm.categoria_id || ''}
+                                                onChange={(e) => setEditForm({...editForm, categoria_id: parseInt(e.target.value)})}
+                                                required
+                                            >
+                                                <option value="">Selecciona una categoría</option>
+                                                {categorias.map((cat) => (
+                                                    <option key={cat.id} value={cat.id}>
+                                                        {cat.codigo} - {cat.nombre}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -559,7 +629,7 @@ const Productos = () => {
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">Precio Compra *</label>
                                             <input
-                                                type="number" min="0" step="0.01"
+                                                type="number"
                                                 className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm"
                                                 value={editForm.precio_compra || ''}
                                                 onChange={(e) => setEditForm({...editForm, precio_compra: parseFloat(e.target.value) || 0})}
@@ -570,7 +640,7 @@ const Productos = () => {
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">Precio Venta *</label>
                                             <input
-                                                type="number" min="0" step="0.01"
+                                                type="number"
                                                 className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm"
                                                 value={editForm.precio_venta || ''}
                                                 onChange={(e) => setEditForm({...editForm, precio_venta: parseFloat(e.target.value) || 0})}
@@ -685,9 +755,18 @@ const Productos = () => {
                     <div 
                     key={producto.id}
                     className="group bg-white border border-gray-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 sm:p-8 hover:shadow-xl hover:shadow-2xl hover:-translate-y-1 sm:hover:-translate-y-2 transition-all duration-300 shadow-md relative overflow-hidden"
-                    >                    
+                    >                  
+                        {/* ✅ BADGE CATEGORÍA - ESQUINA SUPERIOR DERECHA */}
+                        {producto.categoria_codigo && (
+                            <div className="absolute top-3 right-3 z-20">
+                                <span className="px-3 py-1 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs font-bold rounded-full shadow-lg">
+                                    {producto.categoria_codigo}
+                                </span>
+                            </div>
+                        )}
+                        
                         {/* CONTENIDO ORIGINAL */}
-                        <div>   
+                        <div>  
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 sm:mb-6 gap-2 sm:gap-0">
                                 <h3 className="text-lg sm:text-xl font-bold text-gray-900 line-clamp-2 group-hover:text-blue-700 leading-tight">
                                 {producto.descripcion || 'Sin descripción'}
@@ -717,7 +796,7 @@ const Productos = () => {
                                     ? 'text-red-600' 
                                     : 'text-emerald-600'
                                 }`}>
-                                    {producto.cantidad_disponible} unid.
+                                    {parseInt(producto.cantidad_disponible)} unid.
                                 </span>
                                 </div>
                             </div>
@@ -758,9 +837,9 @@ const Productos = () => {
                                         <button
                                             onClick={() => handleEliminar(producto)}
                                             className={`w-8 h-8 text-white rounded-lg flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 ${
-                                                producto.activo 
-                                                    ? 'bg-red-500 hover:bg-red-600' 
-                                                    : 'bg-emerald-500 hover:bg-emerald-600'
+                                            producto.activo 
+                                                ? 'bg-red-500 hover:bg-red-600' 
+                                                : 'bg-emerald-500 hover:bg-emerald-600'
                                             } ${updating === producto.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             title={producto.activo ? 'Desactivar producto' : 'Activar producto'}
                                             disabled={updating === producto.id}
