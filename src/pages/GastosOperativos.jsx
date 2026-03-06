@@ -5,7 +5,6 @@ const GastosOperativos = () => {
     // Estados principales
     const [gastos, setGastos] = useState([]);
     const [productos, setProductos] = useState([]);
-    const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -37,6 +36,189 @@ const GastosOperativos = () => {
     //categorias productos
     const [categorias, setCategorias] = useState([]);
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('N/A');
+
+    //FETCH PRINCIPALES (gastos, categorías, productos)
+
+     // FETCH FUNCTIONS
+    const fetchGastos = useCallback(async (currentPage = 1) => {
+        try {
+            setLoading(true);
+            let url = `${apiURL}/gastos-operativos?page=${currentPage}&limit=12`;
+            if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data.success) {
+                setGastos(data.data);
+                setGastosPagination(data.pagination || { 
+                    totalPages: Math.ceil((data.total || 12) / 12) 
+                });
+            }
+        } catch (error) {
+            console.error('Error cargando gastos:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [searchTerm]);
+
+    // Fetch productos con paginación
+    const fetchProductos = useCallback(async (currentPage = 1, categoria = 'N/A') => {
+        try {
+            const params = new URLSearchParams({ page: currentPage, limit: 10, categoria });
+            const response = await fetch(`${apiURL}/productos?${params}`);
+            const data = await response.json();
+            if (data.success) {
+                setProductos(data.data);
+                setProductosPagination(data.pagination);
+            }
+        } catch (error) {
+            console.error('Error cargando productos:', error);
+        }
+    }, []);
+
+    // ✅ Cargar categorías al abrir modal
+    const fetchCategorias = useCallback(async () => {
+        try {
+            const response = await fetch(`${apiURL}/categorias`);
+            const data = await response.json();
+            if (data.success) setCategorias(data.data);
+        } catch (error) {
+            console.error('Error cargando categorías:', error);
+        }
+    }, []);
+
+    //USEEFFECTS PRINCIPALES
+    
+    //useEffect principal para gastos
+    useEffect(() => {
+        fetchGastos(gastosPage);
+    }, [gastosPage, fetchGastos]);
+
+    //UN SOLO useEffect para TODO el modal (evita cadenas)
+    useEffect(() => {
+    if (showCreateModal || showEditModal) {
+        fetchCategorias();
+        fetchProductos(1, 'N/A'); // Reset a N/A y página 1
+        setCategoriaSeleccionada('N/A');
+        setProductosPage(1);
+    }
+    }, [showCreateModal, showEditModal, fetchProductos, fetchCategorias]);
+
+    useEffect(() => {
+        fetchProductos(productosPage, categoriaSeleccionada);
+    }, [productosPage, categoriaSeleccionada, fetchProductos]);
+
+    //useEffect para cargar usuario actual (solo al montar)
+    useEffect(() => {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+        try {
+            setCurrentUser(JSON.parse(userData));
+        } catch (error) {}
+        }
+    }, []);
+
+    //HANDLERS PRINCIPALES
+
+    // Crear gasto
+    const handleCrearGasto = async (e) => {
+        e.preventDefault();
+        if (!createForm.descripcion || selectedProductos.length === 0 || !currentUser) {
+        alert('Complete descripción y seleccione productos');
+        return;
+        }
+
+        try {
+        setCreatingGasto(true);
+        const response = await fetch(`${apiURL}/gastos-operativos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+            ...createForm,
+            usuario_id: currentUser.id,
+            total: calcularTotal(),
+            detalles: selectedProductos.map(p => ({
+                producto_id: p.id,
+                cantidad_consumida: p.cantidad,
+                precio_unitario: p.precio_compra,
+                valor_total: p.precio_compra * p.cantidad
+            }))
+            })
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+            setShowCreateModal(false);
+            resetForm();
+            fetchGastos(gastosPage);
+        } else {
+            alert('Error: ' + (data.message || 'Inténtalo de nuevo'));
+        }
+        } catch (error) {
+        alert('Error de conexión');
+        } finally {
+        setCreatingGasto(false);
+        }
+    };
+
+    const handleEditarGasto = async (e) => {
+        e.preventDefault();
+        if (!createForm.descripcion || selectedProductos.length === 0) {
+            alert('Complete todos los campos');
+            return;
+        }
+
+        try {
+            setEditingGastoLoading(true);
+            const response = await fetch(`${apiURL}/gastos-operativos/${editingGasto.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    descripcion: createForm.descripcion,
+                    tipo_gasto: createForm.tipo_gasto,
+                    total: calcularTotal(),
+                    detalles: selectedProductos.map(p => ({
+                        producto_id: p.id,
+                        cantidad_consumida: p.cantidad,
+                        precio_unitario: p.precio_compra,
+                        valor_total: p.precio_compra * p.cantidad
+                    }))
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {  // ✅ Solo data.success (no response.ok)
+                setShowEditModal(false);
+                resetForm();
+                fetchGastos(gastosPage);  // ✅ gastosPage no page
+            } else {
+                alert('Error: ' + (data.message || 'Inténtalo de nuevo'));
+            }
+        } catch (error) {
+            alert('Error de conexión');
+        } finally {
+            setEditingGastoLoading(false);
+        }
+    };
+
+    const handleEliminarGasto = async () => {
+        try {
+        const response = await fetch(`${apiURL}/gastos-operativos/${deletingGasto.id}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        if (response.ok && data.success) {
+            setShowDeleteModal(false);
+            setDeletingGasto(null);
+            fetchGastos(gastosPage);
+        } else {
+            alert('Error: ' + (data.message || 'No se pudo eliminar'));
+        }
+        } catch (error) {
+            alert('Error de conexión');
+        }
+    };
 
     const handleAprobarGasto = async (gastoId) => {
         try {
@@ -87,113 +269,6 @@ const GastosOperativos = () => {
         }
     };
 
-
-    // FETCH FUNCTIONS
-    const fetchGastos = useCallback(async (currentPage = 1) => {
-        try {
-            setLoading(true);
-            let url = `${apiURL}/gastos-operativos?page=${currentPage}&limit=12`;
-            if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
-            
-            const response = await fetch(url);
-            const data = await response.json();
-            if (data.success) {
-            setGastos(data.data);
-            setGastosPagination(data.pagination || { 
-                totalPages: Math.ceil((data.total || 12) / 12) 
-            });
-            }
-        } catch (error) {
-            console.error('Error cargando gastos:', error);
-        } finally {
-            setLoading(false);
-        }
-    }, [searchTerm]);
-
-    useEffect(() => {
-        fetchGastos(gastosPage);
-    }, [gastosPage, fetchGastos]);
-
-    // ✅ Cargar categorías al abrir modal
-    const fetchCategorias = async () => {
-        try {
-            const response = await fetch(`${apiURL}/categorias`);
-            const data = await response.json();
-            if (data.success) {
-                setCategorias(data.data);
-            }
-        } catch (error) {
-            console.error('Error cargando categorías:', error);
-        }
-    };
-
-    // Fetch productos con paginación
-    const fetchProductos = async (currentPage = 1, categoria = 'N/A') => {
-        try {
-        const params = new URLSearchParams({
-            page: currentPage,
-            limit: 10,
-            categoria: categoria
-        });
-        const response = await fetch(`${apiURL}/productos?${params}`);
-        const data = await response.json();
-        if (data.success) {
-            setProductos(data.data);
-            setProductosPagination(data.pagination);
-        }
-        } catch (error) {
-        console.error('Error cargando productos:', error);
-        }
-    };
-
-    // AGREGAR useEffect para paginación
-    useEffect(() => {
-        fetchProductos(productosPage, categoriaSeleccionada);
-    }, [productosPage, fetchProductos, categoriaSeleccionada]);
-
-
-    // useEffect original (modificar)
-    useEffect(() => {
-        if (showCreateModal || showEditModal) {
-            fetchProductos(1, categoriaSeleccionada); // Empezar en página 1
-        }
-    }, [showCreateModal, showEditModal]);
-
-    // Effects
-    useEffect(() => {
-        const userData = localStorage.getItem('user');
-        if (userData) {
-        try {
-            setCurrentUser(JSON.parse(userData));
-        } catch (error) {}
-        }
-    }, []);
-
-    useEffect(() => {
-        fetchGastos(page);
-    }, [page, fetchGastos]);
-
-    useEffect(() => {
-        if (showCreateModal || showEditModal) {
-        fetchProductos(1, categoriaSeleccionada); // Empezar en página 1
-        }
-    }, [showCreateModal, showEditModal]);
-
-    // Utils
-    const formatDinero = (numero) => {
-        return Number(numero ?? 0).toLocaleString('es-SV', { 
-        minimumFractionDigits: 2, 
-        maximumFractionDigits: 2 
-        });
-    };
-
-    const calcularTotal = () => {
-        return selectedProductos.reduce((total, p) => {
-        const precio = p.precio_compra || 0;
-        return total + (precio * (p.cantidad || 1));
-        }, 0);
-    };
-
     // Handlers productos
     const handleAgregarProducto = (producto) => {
         const existe = selectedProductos.find(p => p.id === producto.id);
@@ -207,6 +282,10 @@ const GastosOperativos = () => {
             cantidad: 1 
         }]);
         }
+    };
+
+    const handleBorrarProducto = (productoId) => {
+        setSelectedProductos(prev => prev.filter(p => p.id !== productoId));
     };
 
     const handleAumentarCantidad = (productoId) => {
@@ -231,56 +310,15 @@ const GastosOperativos = () => {
         });
     };
 
-    const handleBorrarProducto = (productoId) => {
-        setSelectedProductos(prev => prev.filter(p => p.id !== productoId));
-    };
+    //Handlers modales
 
-    // Reset form
-    const resetForm = () => {
-        setCreateForm({ descripcion: 'Consumo personal', tipo_gasto: 'consumo_personal' });
-        setSelectedProductos([]);
-    };
-
-    // Crear gasto
-    const handleCrearGasto = async (e) => {
-        e.preventDefault();
-        if (!createForm.descripcion || selectedProductos.length === 0 || !currentUser) {
-        alert('Complete descripción y seleccione productos');
-        return;
-        }
-
-        try {
-        setCreatingGasto(true);
-        const response = await fetch(`${apiURL}/gastos-operativos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-            ...createForm,
-            usuario_id: currentUser.id,
-            total: calcularTotal(),
-            detalles: selectedProductos.map(p => ({
-                producto_id: p.id,
-                cantidad_consumida: p.cantidad,
-                precio_unitario: p.precio_compra,
-                valor_total: p.precio_compra * p.cantidad
-            }))
-            })
-        });
-
-        const data = await response.json();
-        if (response.ok && data.success) {
-            setShowCreateModal(false);
-            resetForm();
-            fetchGastos(page);
-        } else {
-            alert('Error: ' + (data.message || 'Inténtalo de nuevo'));
-        }
-        } catch (error) {
-        alert('Error de conexión');
-        } finally {
-        setCreatingGasto(false);
-        }
-    };
+    // 3. ✅ Abrir modal optimizado
+    const handleAbrirCrearModal = useCallback(() => {
+        setShowCreateModal(true);
+        setCategoriaSeleccionada('NA');
+        setProductosPage(1);
+        resetForm();
+    }, []);
 
     const handleAbrirEditar = async (gasto) => {
         try {
@@ -292,27 +330,27 @@ const GastosOperativos = () => {
             const data = await response.json();
             
             if (data.success) {
-            // ✅ FORMULARIO
-            setCreateForm({
-                descripcion: data.data.descripcion,  // ← del API
-                tipo_gasto: data.data.tipo_gasto     // ← del API
-            });
+                // ✅ FORMULARIO
+                setCreateForm({
+                    descripcion: data.data.descripcion,  // ← del API
+                    tipo_gasto: data.data.tipo_gasto     // ← del API
+                });
             
-            // ✅ PRODUCTOS - MAPEAR JSON CORRECTAMENTE
-            const detalles = data.data.detalles || [];
-            setSelectedProductos(detalles.map(d => ({
-                id: d.producto_id,
-                descripcion: d.descripcion || gasto.descripcion, // fallback
-                presentacion: 'Unidad' || d.presentacion, // o del gasto original
-                precio_compra: d.precio_unitario,
-                cantidad_disponible: 0, // no editable
-                cantidad: d.cantidad_consumida,
-                valor_total: d.valor_total
-            })));
+                // ✅ PRODUCTOS - MAPEAR JSON CORRECTAMENTE
+                const detalles = data.data.detalles || [];
+                setSelectedProductos(detalles.map(d => ({
+                    id: d.producto_id,
+                    descripcion: d.descripcion || gasto.descripcion, // fallback
+                    presentacion: 'Unidad' || d.presentacion, // o del gasto original
+                    precio_compra: d.precio_unitario,
+                    cantidad_disponible: 0, // no editable
+                    cantidad: d.cantidad_consumida,
+                    valor_total: d.valor_total
+                })));
             
-            // Reset paginación
-            setCategoriaSeleccionada('N/A');
-            setProductosPage(1);
+                // Reset paginación
+                setCategoriaSeleccionada('N/A');
+                setProductosPage(1);
             }
         } catch (error) {
             console.error('Error cargando gasto:', error);
@@ -320,71 +358,43 @@ const GastosOperativos = () => {
         }
     };
 
-
-    const handleEditarGasto = async (e) => {
-        e.preventDefault();
-        if (!createForm.descripcion || selectedProductos.length === 0) {
-            alert('Complete todos los campos');
-            return;
-        }
-
-        try {
-            setEditingGastoLoading(true);
-            const response = await fetch(`${apiURL}/gastos-operativos/${editingGasto.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    descripcion: createForm.descripcion,
-                    tipo_gasto: createForm.tipo_gasto,
-                    total: calcularTotal(),
-                    detalles: selectedProductos.map(p => ({
-                        producto_id: p.id,
-                        cantidad_consumida: p.cantidad,
-                        precio_unitario: p.precio_compra,
-                        valor_total: p.precio_compra * p.cantidad
-                    }))
-                })
-            });
-
-            const data = await response.json();
-            if (data.success) {  // ✅ Solo data.success (no response.ok)
-                setShowEditModal(false);
-                resetForm();
-                fetchGastos(gastosPage);  // ✅ gastosPage no page
-            } else {
-                alert('Error: ' + (data.message || 'Inténtalo de nuevo'));
-            }
-        } catch (error) {
-            alert('Error de conexión');
-        } finally {
-            setEditingGastoLoading(false);
-        }
-    };
-
-
     // Eliminar gasto
     const handleAbrirEliminar = (gasto) => {
         setDeletingGasto(gasto);
         setShowDeleteModal(true);
     };
 
-    const handleEliminarGasto = async () => {
-        try {
-        const response = await fetch(`${apiURL}/gastos-operativos/${deletingGasto.id}`, {
-            method: 'DELETE'
+    // ✅ Handler categorías (SOLO cambia estado)
+    const handleCategoriaChange = useCallback((codigo) => {
+        setCategoriaSeleccionada(codigo);
+        setProductosPage(1);
+    }, []);
+
+    // ✅ Paginación productos
+    const handlePageChange = useCallback((page) => {
+        setProductosPage(page);
+        fetchProductos(page, categoriaSeleccionada);
+    }, [fetchProductos, categoriaSeleccionada]);
+
+    // Reset form
+    const resetForm = () => {
+        setCreateForm({ descripcion: 'Consumo personal', tipo_gasto: 'consumo_personal' });
+        setSelectedProductos([]);
+    };
+
+    //UTILS PRINCIPALES
+    const formatDinero = (numero) => {
+        return Number(numero ?? 0).toLocaleString('es-SV', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
         });
-        
-        const data = await response.json();
-        if (response.ok && data.success) {
-            setShowDeleteModal(false);
-            setDeletingGasto(null);
-            fetchGastos(page);
-        } else {
-            alert('Error: ' + (data.message || 'No se pudo eliminar'));
-        }
-        } catch (error) {
-            alert('Error de conexión');
-        }
+    };
+
+    const calcularTotal = () => {
+        return selectedProductos.reduce((total, p) => {
+        const precio = p.precio_compra || 0;
+        return total + (precio * (p.cantidad || 1));
+        }, 0);
     };
 
     if (loading && gastos.length === 0) {
@@ -404,224 +414,218 @@ const GastosOperativos = () => {
             
             {/* HEADER */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
-            <div>
-                <h1 className="text-4xl lg:text-5xl font-black bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">
-                💸 Gastos Operativos
-                </h1>
-                <p className="text-xl text-gray-600">Gestión completa de gastos operativos</p>
-            </div>
-            <button
-                onClick={() => {
-                setShowCreateModal(true);
-                fetchProductos(1); // Reset paginación productos
-                fetchCategorias(); // Recargar categorías
-                setCategoriaSeleccionada('N/A'); // Reset categoría
-                resetForm();
-                }}
-                className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-3 text-lg"
-            >
-                ➕ Nuevo Gasto
-            </button>
+                <div>
+                    <h1 className="text-4xl lg:text-5xl font-black bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">
+                    💸 Gastos Operativos
+                    </h1>
+                    <p className="text-xl text-gray-600">Gestión completa de gastos operativos</p>
+                </div>
+                <button
+                    onClick={handleAbrirCrearModal}
+                    className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-3 text-lg"
+                >
+                    ➕ Nuevo Gasto
+                </button>
             </div>
 
             {/* PAGINACIÓN GASTOS SUPERIOR - CORREGIDA */}
             {gastosPagination.totalPages > 1 && (
-            <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-md lg:shadow-lg mb-8 lg:mb-12 flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-4">
-                
-                {/* BOTÓN ANTERIOR */}
-                <button 
-                className="w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md lg:shadow-lg text-xs lg:text-sm flex-shrink-0"
-                onClick={() => setGastosPage(Math.max(1, gastosPage - 1))}
-                disabled={gastosPage <= 1}
-                >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                </button>
-
-                {/* NÚMEROS PÁGINAS */}
-                <div className="hidden sm:flex gap-1 lg:gap-2 justify-center min-w-[120px] lg:min-w-[160px]">
-                {Array.from({ length: Math.min(5, gastosPagination.totalPages) }, (_, i) => {
-                    const startPage = Math.max(1, gastosPage - 2);
-                    const pageNum = Math.min(startPage + i, gastosPagination.totalPages);
-                    return (
-                    <button
-                        key={pageNum}
-                        className={`w-10 h-10 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 hover:scale-105 shadow-sm lg:shadow-md flex items-center justify-center text-sm lg:text-base flex-shrink-0 ${
-                        pageNum === gastosPage 
-                            ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/25' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-emerald-100 hover:text-emerald-700 border border-gray-200 hover:border-emerald-200'
-                        }`}
-                        onClick={() => setGastosPage(pageNum)}
+                <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-md lg:shadow-lg mb-8 lg:mb-12 flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-4">
+                    
+                    {/* BOTÓN ANTERIOR */}
+                    <button 
+                    className="w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md lg:shadow-lg text-xs lg:text-sm flex-shrink-0"
+                    onClick={() => setGastosPage(Math.max(1, gastosPage - 1))}
+                    disabled={gastosPage <= 1}
                     >
-                        {pageNum}
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
                     </button>
-                    );
-                })}
-                </div>
 
-                {/* BOTÓN SIGUIENTE */}
-                <button 
-                className="w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md lg:shadow-lg text-xs lg:text-sm flex-shrink-0"
-                onClick={() => setGastosPage(Math.min(gastosPagination.totalPages, gastosPage + 1))}
-                disabled={gastosPage >= gastosPagination.totalPages}
-                >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                </button>
+                    {/* NÚMEROS PÁGINAS */}
+                    <div className="hidden sm:flex gap-1 lg:gap-2 justify-center min-w-[120px] lg:min-w-[160px]">
+                    {Array.from({ length: Math.min(5, gastosPagination.totalPages) }, (_, i) => {
+                        const startPage = Math.max(1, gastosPage - 2);
+                        const pageNum = Math.min(startPage + i, gastosPagination.totalPages);
+                        return (
+                        <button
+                            key={pageNum}
+                            className={`w-10 h-10 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 hover:scale-105 shadow-sm lg:shadow-md flex items-center justify-center text-sm lg:text-base flex-shrink-0 ${
+                            pageNum === gastosPage 
+                                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/25' 
+                                : 'bg-gray-100 text-gray-700 hover:bg-emerald-100 hover:text-emerald-700 border border-gray-200 hover:border-emerald-200'
+                            }`}
+                            onClick={() => setGastosPage(pageNum)}
+                        >
+                            {pageNum}
+                        </button>
+                        );
+                    })}
+                    </div>
 
-                {/* INDICADOR ACTUAL */}
-                <div className="hidden sm:block text-gray-700 font-semibold bg-gray-100 px-4 py-2 lg:px-6 lg:py-3 rounded-xl lg:rounded-2xl border border-gray-200 text-sm lg:text-base whitespace-nowrap flex-shrink-0">
-                Pg. <span className="text-emerald-600 font-bold">{page}</span> de <span className="text-teal-600 font-bold">{gastosPagination.totalPages}</span>
+                    {/* BOTÓN SIGUIENTE */}
+                    <button 
+                    className="w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md lg:shadow-lg text-xs lg:text-sm flex-shrink-0"
+                    onClick={() => setGastosPage(Math.min(gastosPagination.totalPages, gastosPage + 1))}
+                    disabled={gastosPage >= gastosPagination.totalPages}
+                    >
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    </button>
+
+                    {/* INDICADOR ACTUAL */}
+                    <div className="hidden sm:block text-gray-700 font-semibold bg-gray-100 px-4 py-2 lg:px-6 lg:py-3 rounded-xl lg:rounded-2xl border border-gray-200 text-sm lg:text-base whitespace-nowrap flex-shrink-0">
+                    Pg. <span className="text-emerald-600 font-bold">{gastosPage}</span> de <span className="text-teal-600 font-bold">{gastosPagination.totalPages}</span>
+                    </div>
                 </div>
-            </div>
             )}
 
             {/* GRID GASTOS - DISEÑO ARMONIOSO */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {gastos.map(gasto => (
-                <div key={gasto.id} className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl border border-gray-100 hover:border-gray-200 transition-all duration-300 hover:-translate-y-1 h-full">
-                
-                {/* HEADER - ID + ESTADO */}
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-gray-900 line-clamp-1">Gasto #{gasto.id}</h3>
-                    <span className={`px-3 py-1 rounded-full text-sm font-bold whitespace-nowrap ${
-                    gasto.estado === 'aprobado' 
-                        ? 'bg-emerald-100 text-emerald-800' 
-                        : gasto.estado === 'rechazado'
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-amber-100 text-amber-800'
-                    }`}>
-                    {gasto.estado === 'aprobado' ? '✅ Aprobado' : 
-                    gasto.estado === 'rechazado' ? '❌ Rechazado' : '⏳ Pendiente'}
-                    </span>
-                </div>
-                
-                {/* INFO - MÁS ESPACIO */}
-                <div className="space-y-3 mb-8 flex-1">
-                    <p className="text-lg text-gray-600 font-medium">Descripción: 
-                    <span className="block text-xl font-bold text-gray-900 mt-1">{gasto.descripcion}</span>
-                    </p>
-                    <p className="text-lg text-gray-600 font-medium flex items-center gap-2">
-                    <span className="text-emerald-600">📋</span>
-                    <span className="font-bold text-gray-900">{gasto.tipo_gasto?.replace('_', ' ').toUpperCase()}</span>
-                    </p>
-                </div>
-
-                {/* TOTAL - DESTACADO */}
-                <div className="text-2xl lg:text-3xl font-black text-emerald-600 mb-8 bg-gradient-to-r from-emerald-50 to-green-50 p-6 rounded-2xl shadow-lg">
-                    -${formatDinero(gasto.total)}
-                </div>
-
-                {/* BOTONES - ICONOS + TEXTO XS */}
-                <div className="space-y-2">
-                {/* PENDIENTE: 3 botones compactos */}
-                {gasto.estado === 'pendiente' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <button
-                        onClick={() => handleAprobarGasto(gasto.id)}
-                        disabled={updatingGasto === gasto.id}
-                        className="h-12 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 text-xs"
-                    >
-                        {updatingGasto === gasto.id ? (
-                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                        </svg>
-                        ) : (
-                        <>
-                            ✅ Aprobar
-                        </>
-                        )}
-                    </button>
-                    <button
-                        onClick={() => handleRechazarGasto(gasto.id)}
-                        disabled={updatingGasto === gasto.id}
-                        className="h-12 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 text-xs"
-                    >
-                        {updatingGasto === gasto.id ? (
-                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                        </svg>
-                        ) : (
-                        <>
-                            ❌ Rechazar
-                        </>
-                        )}
-                    </button>
-                    <button
-                        onClick={() => handleAbrirEditar(gasto)}
-                        className="h-12 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-1 text-xs"
-                    >
-                        👁️ Detalle
-                    </button>
+                {gastos.map(gasto => (
+                    <div key={gasto.id} className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl border border-gray-100 hover:border-gray-200 transition-all duration-300 hover:-translate-y-1 h-full">
+                    
+                    {/* HEADER - ID + ESTADO */}
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-xl font-bold text-gray-900 line-clamp-1">Gasto #{gasto.id}</h3>
+                        <span className={`px-3 py-1 rounded-full text-sm font-bold whitespace-nowrap ${
+                        gasto.estado === 'aprobado' 
+                            ? 'bg-emerald-100 text-emerald-800' 
+                            : gasto.estado === 'rechazado'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}>
+                        {gasto.estado === 'aprobado' ? '✅ Aprobado' : 
+                        gasto.estado === 'rechazado' ? '❌ Rechazado' : '⏳ Pendiente'}
+                        </span>
                     </div>
-                )}
+                    
+                    {/* INFO - MÁS ESPACIO */}
+                    <div className="space-y-3 mb-8 flex-1">
+                        <p className="text-lg text-gray-600 font-medium">Descripción: 
+                        <span className="block text-xl font-bold text-gray-900 mt-1">{gasto.descripcion}</span>
+                        </p>
+                        <p className="text-lg text-gray-600 font-medium flex items-center gap-2">
+                        <span className="text-emerald-600">📋</span>
+                        <span className="font-bold text-gray-900">{gasto.tipo_gasto?.replace('_', ' ').toUpperCase()}</span>
+                        </p>
+                    </div>
 
-                {/* APROBADO/RECHAZADO: Botón grande */}
-                {gasto.estado !== 'pendiente' && (
-                    <button 
-                    onClick={() => handleAbrirEditar(gasto)}
-                    className="w-full h-14 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-2 text-sm"
-                    >
-                    👁️ Ver Detalle
-                    </button>
-                )}
-                </div>
-                </div>
-            ))}
+                    {/* TOTAL - DESTACADO */}
+                    <div className="text-2xl lg:text-3xl font-black text-emerald-600 mb-8 bg-gradient-to-r from-emerald-50 to-green-50 p-6 rounded-2xl shadow-lg">
+                        -${formatDinero(gasto.total)}
+                    </div>
+
+                    {/* BOTONES - ICONOS + TEXTO XS */}
+                    <div className="space-y-2">
+                    {/* PENDIENTE: 3 botones compactos */}
+                    {gasto.estado === 'pendiente' && (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <button
+                            onClick={() => handleAprobarGasto(gasto.id)}
+                            disabled={updatingGasto === gasto.id}
+                            className="h-12 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 text-xs"
+                        >
+                            {updatingGasto === gasto.id ? (
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                            </svg>
+                            ) : (
+                            <>
+                                ✅ Aprobar
+                            </>
+                            )}
+                        </button>
+                        <button
+                            onClick={() => handleRechazarGasto(gasto.id)}
+                            disabled={updatingGasto === gasto.id}
+                            className="h-12 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 text-xs"
+                        >
+                            {updatingGasto === gasto.id ? (
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                            </svg>
+                            ) : (
+                            <>
+                                ❌ Rechazar
+                            </>
+                            )}
+                        </button>
+                        <button
+                            onClick={() => handleAbrirEditar(gasto)}
+                            className="h-12 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-1 text-xs"
+                        >
+                            👁️ Detalle
+                        </button>
+                        </div>
+                    )}
+
+                    {/* APROBADO/RECHAZADO: Botón grande */}
+                    {gasto.estado !== 'pendiente' && (
+                        <button 
+                        onClick={() => handleAbrirEditar(gasto)}
+                        className="w-full h-14 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+                        >
+                        👁️ Ver Detalle
+                        </button>
+                    )}
+                    </div>
+                    </div>
+                ))}
             </div>
 
             {/* PAGINACIÓN GASTOS INFERIOR - EXACTA IGUAL SUPERIOR */}
             {gastosPagination.totalPages > 1 && (
-            <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-md lg:shadow-lg mb-8 lg:mb-12 flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-4">
-                {/* MISMO CÓDIGO QUE SUPERIOR */}
-                <button 
-                className="w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md lg:shadow-lg text-xs lg:text-sm flex-shrink-0"
-                onClick={() => setGastosPage(Math.max(1, gastosPage - 1))}
-                disabled={gastosPage <= 1}
-                >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                </button>
-
-                <div className="hidden sm:flex gap-1 lg:gap-2 justify-center min-w-[120px] lg:min-w-[160px]">
-                {Array.from({ length: Math.min(5, gastosPagination.totalPages) }, (_, i) => {
-                    const startPage = Math.max(1, gastosPage - 2);
-                    const pageNum = Math.min(startPage + i, gastosPagination.totalPages);
-                    return (
-                    <button
-                        key={pageNum}
-                        className={`w-10 h-10 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 hover:scale-105 shadow-sm lg:shadow-md flex items-center justify-center text-sm lg:text-base flex-shrink-0 ${
-                        pageNum === gastosPage 
-                            ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/25' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-emerald-100 hover:text-emerald-700 border border-gray-200 hover:border-emerald-200'
-                        }`}
-                        onClick={() => setGastosPage(pageNum)}
+                <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-md lg:shadow-lg mb-8 lg:mb-12 flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-4">
+                    {/* MISMO CÓDIGO QUE SUPERIOR */}
+                    <button 
+                    className="w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md lg:shadow-lg text-xs lg:text-sm flex-shrink-0"
+                    onClick={() => setGastosPage(Math.max(1, gastosPage - 1))}
+                    disabled={gastosPage <= 1}
                     >
-                        {pageNum}
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
                     </button>
-                    );
-                })}
-                </div>
 
-                <button 
-                className="w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md lg:shadow-lg text-xs lg:text-sm flex-shrink-0"
-                onClick={() => setGastosPage(Math.min(gastosPagination.totalPages, gastosPage + 1))}
-                disabled={gastosPage >= gastosPagination.totalPages}
-                >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                </button>
+                    <div className="hidden sm:flex gap-1 lg:gap-2 justify-center min-w-[120px] lg:min-w-[160px]">
+                    {Array.from({ length: Math.min(5, gastosPagination.totalPages) }, (_, i) => {
+                        const startPage = Math.max(1, gastosPage - 2);
+                        const pageNum = Math.min(startPage + i, gastosPagination.totalPages);
+                        return (
+                        <button
+                            key={pageNum}
+                            className={`w-10 h-10 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 hover:scale-105 shadow-sm lg:shadow-md flex items-center justify-center text-sm lg:text-base flex-shrink-0 ${
+                            pageNum === gastosPage 
+                                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/25' 
+                                : 'bg-gray-100 text-gray-700 hover:bg-emerald-100 hover:text-emerald-700 border border-gray-200 hover:border-emerald-200'
+                            }`}
+                            onClick={() => setGastosPage(pageNum)}
+                        >
+                            {pageNum}
+                        </button>
+                        );
+                    })}
+                    </div>
 
-                <div className="hidden sm:block text-gray-700 font-semibold bg-gray-100 px-4 py-2 lg:px-6 lg:py-3 rounded-xl lg:rounded-2xl border border-gray-200 text-sm lg:text-base whitespace-nowrap flex-shrink-0">
-                Pg. <span className="text-emerald-600 font-bold">{gastosPage}</span> de <span className="text-teal-600 font-bold">{gastosPagination.totalPages}</span>
+                    <button 
+                    className="w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md lg:shadow-lg text-xs lg:text-sm flex-shrink-0"
+                    onClick={() => setGastosPage(Math.min(gastosPagination.totalPages, gastosPage + 1))}
+                    disabled={gastosPage >= gastosPagination.totalPages}
+                    >
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    </button>
+
+                    <div className="hidden sm:block text-gray-700 font-semibold bg-gray-100 px-4 py-2 lg:px-6 lg:py-3 rounded-xl lg:rounded-2xl border border-gray-200 text-sm lg:text-base whitespace-nowrap flex-shrink-0">
+                    Pg. <span className="text-emerald-600 font-bold">{gastosPage}</span> de <span className="text-teal-600 font-bold">{gastosPagination.totalPages}</span>
+                    </div>
                 </div>
-            </div>
             )}
 
             {gastos.length === 0 && !loading && (
@@ -647,10 +651,8 @@ const GastosOperativos = () => {
             onClick={() => {
                 setShowCreateModal(false);
                 setShowEditModal(false);
-                fetchProductos(1); // Reset paginación productos
-                fetchCategorias(); // Recargar categorías
                 resetForm();
-            }} 
+            }}
             />
             <div className="fixed inset-0 z-[1000] p-2 sm:p-4 flex items-center justify-center">
             <div className="w-full max-w-[95vw] lg:max-w-6xl h-[95vh] lg:h-[90vh] bg-white rounded-3xl shadow-2xl flex flex-col animate-in slide-in-from-bottom-4 duration-300 overflow-hidden">
@@ -745,14 +747,14 @@ const GastosOperativos = () => {
                     {productosPagination.totalPages > 1 && (
                         <div className="flex items-center justify-end gap-2 pb-4 mb-2">
                         <button
-                            onClick={() => setProductosPage(Math.max(1, productosPage - 1))}
+                            onClick={() => handlePageChange(Math.max(1, productosPage - 1))}
                             disabled={productosPage === 1}
                             className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
                         >
                             ‹
                         </button>
                         <button
-                            onClick={() => setProductosPage(Math.min(productosPagination.totalPages || 1, productosPage + 1))}
+                            onClick={() => handlePageChange(Math.min(productosPagination.totalPages || 1, productosPage + 1))}
                             disabled={productosPage === (productosPagination.totalPages || 1)}
                             className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
                         >
@@ -763,11 +765,8 @@ const GastosOperativos = () => {
                     {/* CATEGORÍAS - Scroll horizontal NATURAL */}
                         <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
                             {/* N/A */}
-                            <button onClick={() => {
-                                    setCategoriaSeleccionada('N/A');
-                                    fetchProductos(1, 'N/A');
-                                    setProductosPage(1);
-                                }}
+                            <button 
+                                onClick={() => handleCategoriaChange('N/A')}
                                 className={`flex-none px-3 py-2 rounded-xl font-semibold text-sm whitespace-nowrap ${
                                     categoriaSeleccionada === 'N/A'
                                         ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg'
@@ -779,11 +778,7 @@ const GastosOperativos = () => {
                             {/* Categorías */}
                             {categorias.map((cat) => (
                                 <button key={cat.id}
-                                        onClick={() => {
-                                            setCategoriaSeleccionada(cat.codigo);
-                                            fetchProductos(1, cat.codigo);
-                                            setProductosPage(1);
-                                        }}
+                                        onClick={() => handleCategoriaChange(cat.codigo)}
                                         className={`flex-none px-3 py-2 rounded-xl font-semibold text-sm whitespace-nowrap flex items-center gap-1 ${
                                             categoriaSeleccionada === cat.codigo
                                                 ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg'
@@ -835,14 +830,14 @@ const GastosOperativos = () => {
                 {productosPagination.totalPages > 1 && (
                     <div className="flex items-center justify-end gap-2 pt-4 mb-2">
                     <button
-                        onClick={() => setProductosPage(Math.max(1, productosPage - 1))}
+                        onClick={() => handlePageChange(Math.max(1, productosPage - 1))}
                         disabled={productosPage === 1}
                         className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
                     >
                         ‹
                     </button>
                     <button
-                        onClick={() => setProductosPage(Math.min(productosPagination.totalPages || 1, productosPage + 1))}
+                        onClick={() => handlePageChange(Math.min(productosPagination.totalPages || 1, productosPage + 1))}
                         disabled={productosPage === (productosPagination.totalPages || 1)}
                         className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
                     >
@@ -913,9 +908,9 @@ const GastosOperativos = () => {
                 <button
                     type="button"
                     onClick={() => {
-                    setShowCreateModal(false);
-                    setShowEditModal(false);
-                    resetForm();
+                        setShowCreateModal(false);
+                        setShowEditModal(false);
+                        resetForm();
                     }}
                     className="flex-1 sm:flex-none w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 border border-gray-300 text-gray-700 font-semibold text-sm sm:text-base rounded-xl sm:rounded-2xl hover:bg-gray-50 hover:shadow-md transition-all duration-200"
                 >
