@@ -1,15 +1,15 @@
-// App.jsx - COMPLETO CON GASTOS OPERATIVOS AGREGADO
+// App.jsx - COMPLETO CON MENÚ MÓVIL FIJO DEBAJO DEL NAVBAR Y SCROLL AL INICIO
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import Productos from './pages/Productos';
 import Compras from "./pages/Compras";
 import Cuentas from "./pages/Cuentas";
-import GastosOperativos from "./pages/GastosOperativos";  // ✅ NUEVO IMPORT
+import GastosOperativos from "./pages/GastosOperativos";
 import Dashboard from "./pages/Dashboard";
 import Mesas from "./pages/Mesas";
 import Historial from "./pages/Historial";
 import Promociones from "./pages/Promociones";
-import Usuarios from "./pages/Usuarios";  
+import Usuarios from "./pages/Usuarios"; 
 import Login from "./pages/Login";
 
 function App() {
@@ -58,6 +58,12 @@ function App() {
     setIsAuthenticated(true);
   };
 
+  // ✅ FUNCIÓN PARA CERRAR MENÚ Y SCROLLEAR AL INICIO
+  const handleMobileMenuClick = () => {
+    setIsMobileMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-white">
@@ -73,8 +79,8 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-white">
-        {/* NAVBAR PRINCIPAL */}
-        <nav className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
+        {/* NAVBAR PRINCIPAL - CON MENÚ MÓVIL DENTRO */}
+        <nav className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50 relative overflow-invisible">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* FILA PRINCIPAL */}
             <div className="flex items-center justify-between h-16">
@@ -153,7 +159,7 @@ function App() {
                   💰
                 </NavLink>
 
-                {/* ✅ GASTOS OPERATIVOS - DESKTOP */}
+                {/* GASTOS OPERATIVOS - DESKTOP */}
                 <NavLink to="/gastos-operativos" className={({ isActive }) => 
                   `px-3 py-3 rounded-xl font-semibold transition-all duration-300 ${
                     isActive 
@@ -183,7 +189,7 @@ function App() {
                     </svg>
                   </button>
 
-                  {/* DROPDOWN MENU - ALINEADO DERECHA Z-50 */}
+                  {/* DROPDOWN MENU USUARIO */}
                   {showUserDropdown && (
                     <div className="absolute right-0 mt-2 w-80 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 py-3 z-50 animate-in slide-in-from-top-2 duration-200 origin-top-right">
                       {/* Perfil */}
@@ -250,90 +256,103 @@ function App() {
                 </button>
               </div>
             </div>
+
+            {/* ✅ MENÚ MÓVIL - SIEMPRE DEBAJO DEL NAVBAR */}
+            {isMobileMenuOpen && (
+              <div className="md:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-200 shadow-2xl z-40 w-full animate-in slide-in-from-top-2 duration-300">
+                <div className="px-4 py-6 space-y-2 max-h-[calc(100vh-6rem)]">
+                  {/* Dashboard */}
+                  <NavLink to="/dashboard" className={({ isActive }) => 
+                    `block w-full text-left px-4 py-4 rounded-xl font-semibold transition-all duration-300 border-l-4 ${
+                      isActive 
+                        ? 'bg-gradient-to-r from-emerald-600 to-blue-700 text-white shadow-lg border-emerald-500 scale-105' 
+                        : 'text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 border-transparent hover:border-emerald-300 hover:shadow-md'
+                    }`} 
+                    onClick={handleMobileMenuClick}>
+                    📊 Dashboard
+                  </NavLink>
+
+                  {/* Productos */}
+                  <NavLink to="/productos" className={({ isActive }) => 
+                    `block w-full text-left px-4 py-4 rounded-xl font-semibold transition-all duration-300 border-l-4 ${
+                      isActive 
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-lg border-blue-500 scale-105' 
+                        : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50 border-transparent hover:border-blue-300 hover:shadow-md'
+                    }`} 
+                    onClick={handleMobileMenuClick}>
+                    📦 Productos
+                  </NavLink>
+
+                  {/* Mesas */}
+                  <NavLink to="/mesas" className={({ isActive }) => 
+                    `block w-full text-left px-4 py-4 rounded-xl font-semibold transition-all duration-300 border-l-4 ${
+                      isActive 
+                        ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg border-purple-500 scale-105' 
+                        : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50 border-transparent hover:border-purple-300 hover:shadow-md'
+                    }`} 
+                    onClick={handleMobileMenuClick}>
+                    🪑 Mesas
+                  </NavLink>
+
+                  {/* Compras */}
+                  <NavLink to="/compras" className={({ isActive }) => 
+                    `block w-full text-left px-4 py-4 rounded-xl font-semibold transition-all duration-300 border-l-4 ${
+                      isActive 
+                        ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg border-orange-500 scale-105' 
+                        : 'text-gray-700 hover:text-orange-600 hover:bg-orange-50 border-transparent hover:border-orange-300 hover:shadow-md'
+                    }`} 
+                    onClick={handleMobileMenuClick}>
+                    🛒 Compras
+                  </NavLink>
+
+                  {/* Promociones */}
+                  <NavLink to="/promociones" className={({ isActive }) => 
+                    `block w-full text-left px-4 py-4 rounded-xl font-semibold transition-all duration-300 border-l-4 ${
+                      isActive 
+                        ? 'bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-lg border-pink-500 scale-105' 
+                        : 'text-gray-700 hover:text-pink-600 hover:bg-pink-50 border-transparent hover:border-pink-300 hover:shadow-md'
+                    }`} 
+                    onClick={handleMobileMenuClick}>
+                    🎉 Promociones
+                  </NavLink>
+
+                  {/* Historial */}
+                  <NavLink to="/historial" className={({ isActive }) => 
+                    `block w-full text-left px-4 py-4 rounded-xl font-semibold transition-all duration-300 border-l-4 ${
+                      isActive 
+                        ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg border-amber-500 scale-105' 
+                        : 'text-gray-700 hover:text-amber-600 hover:bg-amber-50 border-transparent hover:border-amber-300 hover:shadow-md'
+                    }`} 
+                    onClick={handleMobileMenuClick}>
+                    📋 Historial
+                  </NavLink>
+
+                  {/* Cuentas */}
+                  <NavLink to="/cuentas" className={({ isActive }) => 
+                    `block w-full text-left px-4 py-4 rounded-xl font-semibold transition-all duration-300 border-l-4 ${
+                      isActive 
+                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg border-emerald-500 scale-105' 
+                        : 'text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 border-transparent hover:border-emerald-300 hover:shadow-md'
+                    }`} 
+                    onClick={handleMobileMenuClick}>
+                    💰 Cuentas
+                  </NavLink>
+
+                  {/* Gastos Operativos */}
+                  <NavLink to="/gastos-operativos" className={({ isActive }) => 
+                    `block w-full text-left px-4 py-4 rounded-xl font-semibold transition-all duration-300 border-l-4 ${
+                      isActive 
+                        ? 'bg-gradient-to-r from-red-500 to-orange-600 text-white shadow-lg border-red-500 scale-105' 
+                        : 'text-gray-700 hover:text-red-600 hover:bg-red-50 border-transparent hover:border-red-300 hover:shadow-md'
+                    }`} 
+                    onClick={handleMobileMenuClick}>
+                    💸 Gastos Operativos
+                  </NavLink>
+                </div>
+              </div>
+            )}
           </div>
         </nav>
-
-        {/* MENU MÓVIL - HEIGHT AUTOMÁTICO Z-40 */}
-        <div className={`md:hidden transition-all duration-300 ${
-          isMobileMenuOpen 
-            ? 'max-h-auto opacity-100' 
-            : 'max-h-0 opacity-0 overflow-hidden'
-        } bg-white border-t border-gray-200 shadow-xl z-40`}>
-          <div className="px-4 py-6 space-y-2">
-            <NavLink to="/dashboard" className={({ isActive }) => 
-              `block w-full text-left px-4 py-4 rounded-xl font-semibold transition-all duration-300 border-l-4 ${
-                isActive 
-                  ? 'bg-gradient-to-r from-emerald-600 to-blue-700 text-white shadow-lg border-emerald-500 scale-105' 
-                  : 'text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 border-transparent hover:border-emerald-300 hover:shadow-md'
-              }`} onClick={() => setIsMobileMenuOpen(false)}>
-              📊 Dashboard
-            </NavLink>
-
-            <NavLink to="/productos" className={({ isActive }) => 
-              `block w-full text-left px-4 py-4 rounded-xl font-semibold transition-all duration-300 border-l-4 ${
-                isActive 
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-lg border-blue-500 scale-105' 
-                  : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50 border-transparent hover:border-blue-300 hover:shadow-md'
-              }`} onClick={() => setIsMobileMenuOpen(false)}>
-              📦 Productos
-            </NavLink>
-
-            <NavLink to="/mesas" className={({ isActive }) => 
-              `block w-full text-left px-4 py-4 rounded-xl font-semibold transition-all duration-300 border-l-4 ${
-                isActive 
-                  ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg border-purple-500 scale-105' 
-                  : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50 border-transparent hover:border-purple-300 hover:shadow-md'
-              }`} onClick={() => setIsMobileMenuOpen(false)}>
-              🪑 Mesas
-            </NavLink>
-
-            <NavLink to="/compras" className={({ isActive }) => 
-              `block w-full text-left px-4 py-4 rounded-xl font-semibold transition-all duration-300 border-l-4 ${
-                isActive 
-                  ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg border-orange-500 scale-105' 
-                  : 'text-gray-700 hover:text-orange-600 hover:bg-orange-50 border-transparent hover:border-orange-300 hover:shadow-md'
-              }`} onClick={() => setIsMobileMenuOpen(false)}>
-              🛒 Compras
-            </NavLink>
-
-            <NavLink to="/promociones" className={({ isActive }) => 
-              `block w-full text-left px-4 py-4 rounded-xl font-semibold transition-all duration-300 border-l-4 ${
-                isActive 
-                  ? 'bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-lg border-pink-500 scale-105' 
-                  : 'text-gray-700 hover:text-pink-600 hover:bg-pink-50 border-transparent hover:border-pink-300 hover:shadow-md'
-              }`} onClick={() => setIsMobileMenuOpen(false)}>
-              🎉 Promociones
-            </NavLink>
-
-            <NavLink to="/historial" className={({ isActive }) => 
-              `block w-full text-left px-4 py-4 rounded-xl font-semibold transition-all duration-300 border-l-4 ${
-                isActive 
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg border-amber-500 scale-105' 
-                  : 'text-gray-700 hover:text-amber-600 hover:bg-amber-50 border-transparent hover:border-amber-300 hover:shadow-md'
-              }`} onClick={() => setIsMobileMenuOpen(false)}>
-              📋 Historial
-            </NavLink>
-
-            <NavLink to="/cuentas" className={({ isActive }) => 
-              `block w-full text-left px-4 py-4 rounded-xl font-semibold transition-all duration-300 border-l-4 ${
-                isActive 
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg border-emerald-500 scale-105' 
-                  : 'text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 border-transparent hover:border-emerald-300 hover:shadow-md'
-              }`} onClick={() => setIsMobileMenuOpen(false)}>
-              💰 Cuentas
-            </NavLink>
-
-            {/* ✅ GASTOS OPERATIVOS - MOBILE */}
-            <NavLink to="/gastos-operativos" className={({ isActive }) => 
-              `block w-full text-left px-4 py-4 rounded-xl font-semibold transition-all duration-300 border-l-4 ${
-                isActive 
-                  ? 'bg-gradient-to-r from-red-500 to-orange-600 text-white shadow-lg border-red-500 scale-105' 
-                  : 'text-gray-700 hover:text-red-600 hover:bg-red-50 border-transparent hover:border-red-300 hover:shadow-md'
-              }`} onClick={() => setIsMobileMenuOpen(false)}>
-              💸 Gastos Operativos
-            </NavLink>
-          </div>
-        </div>
 
         {/* CONTENIDO PRINCIPAL */}
         <main className="pt-4 pb-12 px-4 sm:px-6 lg:px-8">
@@ -347,7 +366,6 @@ function App() {
             <Route path="/promociones" element={<Promociones />} />
             <Route path="/cuentas" element={<Cuentas />} />
             <Route path="/historial" element={<Historial />} />
-            {/* ✅ RUTA GASTOS OPERATIVOS */}
             <Route path="/gastos-operativos" element={<GastosOperativos />} />
             <Route path="*" element={<Navigate to="/cuentas" />} />
           </Routes>
