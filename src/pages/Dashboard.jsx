@@ -12,7 +12,7 @@ const Dashboard = () => {
     const obtenerTurnoActualSV = () => {
         const ahora = new Date();
         const hora = ahora.getHours();
-        return (hora >= 18 || hora < 6);
+        return (hora >= 17 || hora < 6);
     };
 
     const horaSV = () => new Date().toLocaleString('es-SV', {
@@ -109,7 +109,7 @@ const Dashboard = () => {
                 <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-4 sm:p-6 lg:p-8 shadow-2xl border border-white/50 mb-12 sm:mb-16">
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap justify-center items-center gap-3 sm:gap-4 mb-6">
                         {[
-                            { key: 'turno', label: '🌙 TURNO (18:00-06:00)', color: 'purple' },
+                            { key: 'turno', label: '🌙 TURNO (5:00p.m-06:00a.m.)', color: 'purple' },
                             { key: 'hoy', label: '📅 Hoy', color: 'emerald' },
                             { key: 'semana', label: '📊 Semana', color: 'blue' },
                             { key: 'mes', label: '📈 Mes', color: 'indigo' },
@@ -334,7 +334,7 @@ const Dashboard = () => {
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 text-base sm:text-lg text-gray-600">
                         <span>📍 America/El_Salvador (UTC-6)</span>
                         <span className="px-4 sm:px-6 py-2 sm:py-3 bg-emerald-100 text-emerald-800 rounded-xl sm:rounded-2xl font-bold shadow-lg">
-                            Turno 18:00-06:00
+                            Turno 5:00p.m.-06:00a.m.
                         </span>
                     </div>
                 </div>
