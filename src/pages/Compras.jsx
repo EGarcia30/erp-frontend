@@ -12,6 +12,10 @@ const Compras = () => {
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(null);
 
+    // ESTADOS PARA EDITAR
+    const [loadingDetail, setLoadingDetail] = useState(null);
+    const [compraEditando, setCompraEditando] = useState(null);
+
     // Modal estados - CREAR
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [selectedProductos, setSelectedProductos] = useState([]);
@@ -21,24 +25,12 @@ const Compras = () => {
         total: 0
     });
 
-    // ✅ MODAL DETALLE - NUEVO
-    const [showDetailModal, setShowDetailModal] = useState(false);
-    const [selectedCompra, setSelectedCompra] = useState(null);
-    const [loadingDetail, setLoadingDetail] = useState(false);
-
     //categorias productos
     const [categorias, setCategorias] = useState([]);
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('N/A');
 
-    // ✅ FORMATEAR DINERO - 2 DECIMALES SIEMPRE
-    const formatDinero = (numero) => {
-        return Number(numero ?? 0).toLocaleString('es-SV', { 
-            minimumFractionDigits: 2, 
-            maximumFractionDigits: 2 
-        });
-    };
-
-    // Fetch compras
+    //FETCH PRINCIPAL COMPRAS, CATEGORIAS Y PRODUCTOS
+     // Fetch compras
     const fetchCompras = async (currentPage = 1) => {
         try {
             setLoading(true);
@@ -87,23 +79,7 @@ const Compras = () => {
         }
     };
 
-    // ✅ VER DETALLE COMPRA (usa TU endpoint /api/compras/:id)
-    const handleVerDetalle = async (compraId) => {
-        try {
-            setLoadingDetail(compraId);
-            const response = await fetch(`${apiURL}/compras/${compraId}`);
-            const data = await response.json();
-            if (data.success) {
-                setSelectedCompra(data.data);
-                setShowDetailModal(true);
-            }
-        } catch (error) {
-            console.error('Error cargando detalle:', error);
-        } finally {
-            setLoadingDetail(null);
-        }
-    };
-
+    //USEEFFECT PRINCIPAL
     useEffect(() => {
         fetchCompras(page);
     }, [page]);
@@ -114,11 +90,50 @@ const Compras = () => {
         }
     }, [showCreateModal, productosPage, categoriaSeleccionada]);
 
+    //HANDLES CREAR COMPRA, VER DETALLE, PAGAR COMPRA, AUMENTAR/DISMINUIR CANTIDAD, BORRAR PRODUCTO, AGREGAR PRODUCTO
+
+     // ✅ NUEVA FUNCIÓN: VER DETALLE / EDITAR COMPRA
+    const handleVerDetalle = async (compraId) => {
+        try {
+            setLoadingDetail(compraId);
+            const response = await fetch(`${apiURL}/compras/${compraId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const compra = data.data;
+                setCompraEditando(compra);
+                setShowCreateModal(true);
+                setCreateForm({
+                    proveedor: compra.proveedor || '',
+                    direccion: compra.direccion || '',
+                    total: 0 // Se recalculará
+                });
+                setSelectedProductos(compra.detalles?.map(detalle => ({
+                    id: detalle.producto_id,
+                    descripcion: detalle.descripcion || '',
+                    presentacion: detalle.presentacion || '',
+                    precio_compra: detalle.precio_compra_actual,
+                    precio_venta: detalle.precio_venta,
+                    cantidad_disponible: 0, // No editable
+                    cantidad: detalle.cantidad_vendida
+                })) || []);
+                setProductosPage(1);
+                fetchCategorias();
+                setCategoriaSeleccionada('N/A');
+            }
+        } catch (error) {
+            console.error('Error cargando detalle:', error);
+        } finally {
+            setLoadingDetail(null);
+        }
+    };
+
     // CERRAR MODAL CREAR
     const handleCerrarModal = () => {
         setShowCreateModal(false);
         setSelectedProductos([]);
         setCreateForm({ proveedor: '', direccion: '', total: 0 });
+        setCompraEditando(null);
         setProductosPage(1);
         setCategoriaSeleccionada('N/A');
     };
@@ -166,17 +181,25 @@ const Compras = () => {
     };
 
 
+     // ✅ MODIFICAR CREAR/EDITAR COMPRA
     const handleCrearCompra = async (e) => {
         e.preventDefault();
         try {
             setUpdating('new');
-            const compraResponse = await fetch(`${apiURL}/compras`, {
-                method: 'POST',
+            
+            const esEdicion = !!compraEditando;
+            const url = esEdicion 
+                ? `${apiURL}/compras/${compraEditando.id}`
+                : `${apiURL}/compras`;
+            const method = esEdicion ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...createForm,
                     total: calcularTotal(),
-                    estado: 'pendiente',
+                    estado: esEdicion ? compraEditando.estado : 'pendiente',
                     detalles: selectedProductos.map(p => ({
                         producto_id: p.id,
                         cantidad_vendida: p.cantidad,
@@ -186,12 +209,12 @@ const Compras = () => {
                 })
             });
 
-            if (compraResponse.ok) {
+            if (response.ok) {
                 handleCerrarModal();
                 fetchCompras(page);
             }
         } catch (error) {
-            console.error('Error creando compra:', error);
+            console.error('Error guardando compra:', error);
         } finally {
             setUpdating(null);
         }
@@ -222,8 +245,34 @@ const Compras = () => {
         }
     };
 
+    //UTILS: FORMATEAR DINERO, CALCULAR TOTAL
+    // ✅ FORMATEAR DINERO - 2 DECIMALES SIEMPRE
+    const formatDinero = (numero) => {
+        return Number(numero ?? 0).toLocaleString('es-SV', { 
+            minimumFractionDigits: 2, 
+            maximumFractionDigits: 2 
+        });
+    };
+
     const calcularTotal = () => {
         return selectedProductos.reduce((total, p) => total + (p.precio_compra * p.cantidad), 0);
+    };
+
+    const formatFechaUTCWithTime = (fechaUTC) => {
+        const date = new Date(fechaUTC);
+        const day = String(date.getDate()).padStart(2, '0');        // Local day
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Local month
+        const year = date.getFullYear();                            // Local year
+        
+        // Formato 12 horas con AM/PM - HORA LOCAL
+        let hours = date.getHours();
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'p.m.' : 'a.m.';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 -> 12
+        const hoursStr = String(hours).padStart(2, '0');
+        
+        return `${day}/${month}/${year} ${hoursStr}:${minutes} ${ampm}`;
     };
 
     if (loading) {
@@ -245,7 +294,6 @@ const Compras = () => {
                             onClick={() => {
                                 setShowCreateModal(true);
                                 setProductosPage(1);
-                                fetchProductos(1, 'N/A');
                                 fetchCategorias();
                                 setCategoriaSeleccionada('N/A');
                             }}
@@ -326,8 +374,18 @@ const Compras = () => {
                                         {compra.estado === 'pagado' ? '✅ Pagado' : '⏳ Pendiente'}
                                     </span>
                                 </div>
-                                <p className="text-sm sm:text-base text-gray-600 mb-2"><strong>Proveedor:</strong> {compra.proveedor}</p>
-                                <p className="text-sm sm:text-base text-gray-600 mb-4"><strong>Dirección:</strong> {compra.direccion}</p>
+                                <p className="text-sm sm:text-base text-gray-600 mb-2">
+                                    <span className="font-normal">Proveedor:</span> 
+                                    <span className="font-bold ml-1">{compra.proveedor}</span>
+                                </p>
+                                <p className="text-sm sm:text-base text-gray-600 mb-2">
+                                    <span className="font-normal">Dirección:</span> 
+                                    <span className="font-bold ml-1">{compra.direccion}</span>
+                                </p>
+                                <p className="text-sm sm:text-base text-gray-500 mb-4">
+                                    <span className="font-normal">Fecha:</span> 
+                                    <span className="font-bold ml-1">{formatFechaUTCWithTime(compra.fecha_creado)}</span>
+                                </p>
                                 <div className="text-xl sm:text-2xl font-bold text-emerald-600 mb-6">
                                     ${formatDinero(compra.total)}
                                 </div>
@@ -433,119 +491,6 @@ const Compras = () => {
                 </div>
             </div>
 
-            {/* ✅ MODAL DETALLE */}
-            {showDetailModal && selectedCompra && (
-                <>
-                    <div 
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70]" 
-                        onClick={() => setShowDetailModal(false)}
-                    />
-                    <div className="fixed inset-0 z-[70] p-4 sm:p-6 flex items-center justify-center overflow-y-auto">
-                        <div className="w-full max-w-lg sm:max-w-2xl lg:max-w-4xl max-h-[95vh] bg-white rounded-2xl lg:rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
-                            <div className="p-6 sm:p-8 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
-                                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
-                                    <div>
-                                        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                                            Detalle Compra #{selectedCompra.id}
-                                        </h2>
-                                        <span className={`px-3 py-1 rounded-full text-sm font-bold mt-2 inline-block ${
-                                            selectedCompra.estado === 'pagado' 
-                                                ? 'bg-emerald-100 text-emerald-800' 
-                                                : 'bg-amber-100 text-amber-800'
-                                        }`}>
-                                            {selectedCompra.estado === 'pagado' ? '✅ Pagado' : '⏳ Pendiente'}
-                                        </span>
-                                    </div>
-                                    <button 
-                                        onClick={() => setShowDetailModal(false)}
-                                        className="text-gray-400 hover:text-gray-600 p-2 rounded-xl hover:bg-gray-100 transition-all self-start lg:self-end"
-                                    >
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                {/* ENCABEZADO */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 p-6 bg-gray-50 rounded-2xl">
-                                    <div>
-                                        <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Proveedor</p>
-                                        <p className="text-lg sm:text-xl font-bold text-gray-900 break-words">{selectedCompra.proveedor}</p>
-                                    </div>
-                                    {selectedCompra.direccion && (
-                                        <div>
-                                            <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Dirección</p>
-                                            <p className="text-lg sm:text-xl font-bold text-gray-900 break-words">{selectedCompra.direccion}</p>
-                                        </div>
-                                    )}
-                                    <div className="sm:col-span-2 lg:col-span-1">
-                                        <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Total</p>
-                                        <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-emerald-600">
-                                            ${formatDinero(selectedCompra.total)}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Fecha</p>
-                                        <p className="text-base sm:text-lg font-bold text-gray-900">
-                                            {new Date(selectedCompra.fecha_creado).toLocaleDateString('es-SV', {
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* DETALLES PRODUCTOS */}
-                                {selectedCompra.detalles && selectedCompra.detalles.length > 0 ? (
-                                    <>
-                                        <h3 className="px-6 sm:px-8 pb-4 sm:pb-6 text-xl sm:text-2xl font-bold text-gray-900">
-                                            Productos ({selectedCompra.detalles.length})
-                                        </h3>
-                                        <div className="px-2 sm:px-6 pb-6 sm:pb-8 space-y-4 max-h-96 overflow-y-auto">
-                                            {selectedCompra.detalles.map((detalle, index) => (
-                                                <div key={detalle.id || index} className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border shadow-sm hover:shadow-md transition-all">
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start lg:items-center">
-                                                        <div className="lg:col-span-2">
-                                                            <p className="font-bold text-base sm:text-lg text-gray-900 line-clamp-2">{detalle.descripcion}</p>
-                                                            <p className="text-sm text-gray-600 mt-1">{detalle.presentacion}</p>
-                                                        </div>
-                                                        <div className="text-center sm:text-left">
-                                                            <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Precio Compra</p>
-                                                            <p className="text-lg sm:text-xl font-bold text-emerald-600">
-                                                                ${detalle.precio_compra_actual?.toLocaleString('es-SV')}
-                                                            </p>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className="text-sm font-medium text-gray-600 mb-1">Cantidad</p>
-                                                            <div>
-                                                                <p className="text-2xl sm:text-3xl font-bold text-gray-900">
-                                                                    {detalle.cantidad_vendida}
-                                                                </p>
-                                                                <p className="text-lg font-bold text-emerald-600">
-                                                                    ${(detalle.precio_compra_actual * detalle.cantidad_vendida)?.toLocaleString('es-SV')}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="px-6 sm:px-8 pb-12 text-center text-gray-500">
-                                        <div className="text-4xl mb-4">📦</div>
-                                        <p className="text-lg font-medium">No hay productos en esta compra</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </>
-            )}
-
             {/* ✅ MODAL CREAR */}
             {showCreateModal && (
                 <>
@@ -555,19 +500,34 @@ const Compras = () => {
                             
                             {/* ✅ HEADER FIJO MÁS COMPACTO */}
                             <div className="p-4 sm:p-6 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-green-50 flex-shrink-0">
-                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-3">
-                                    <div className="space-y-1">
-                                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight">Nueva Compra</h2>
-                                        <p className="text-xs sm:text-sm text-gray-600">Selecciona productos y completa la información</p>
+                                <div className="flex items-center justify-between mb-3 gap-3">
+                                    <div className="space-y-1 min-w-0 flex-1">
+                                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight truncate">
+                                            {compraEditando ? '✏️ Editar Compra' : '➕ Nueva Compra'}
+                                            {compraEditando?.estado === 'pagado' && (
+                                                <span className="ml-2 px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">
+                                                    ✅ Pagada
+                                                </span>
+                                            )}
+                                            <p className="text-base text-gray-600">
+                                                Total: <span className="text-xl font-bold text-emerald-600">${formatDinero(calcularTotal())}</span>
+                                                {selectedProductos.length > 0 && ` (${selectedProductos.length} productos)`}
+                                            </p>
+                                        </h2>
                                     </div>
-                                    <button 
-                                        onClick={handleCerrarModal} 
-                                        className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-all w-9 h-9 flex items-center justify-center sm:ml-auto self-start sm:self-auto shrink-0"
-                                    >
-                                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
+                                    
+                                    {/* TOTAL Y X TOTALMENTE A LA DERECHA */}
+                                    <div className="flex items-center gap-3 flex-shrink-0"> 
+                                        <button 
+                                            onClick={handleCerrarModal} 
+                                            className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-all w-9 h-9 flex items-center justify-center flex-shrink-0"
+                                            aria-label="Cerrar modal"
+                                        >
+                                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* ✅ FORM CABECERA COMPACTO */}
@@ -781,7 +741,11 @@ const Compras = () => {
                                 <button
                                     type="button"
                                     onClick={handleCrearCompra}
-                                    disabled={selectedProductos.length === 0 || updating === 'new'}
+                                    disabled={
+                                        selectedProductos.length === 0 || 
+                                        updating === 'new' || 
+                                        (compraEditando?.estado === 'pagado')
+                                    }
                                     className="flex-1 sm:flex-none w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 disabled:shadow-none text-sm sm:text-base"
                                 >
                                     {updating === 'new' ? (
@@ -790,12 +754,20 @@ const Compras = () => {
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                                             </svg>
-                                            Creando...
+                                            Guardando...
                                         </>
                                     ) : (
                                         <>
-                                            ✅ Crear Compra 
-                                            <span className="text-base sm:text-lg font-bold">{selectedProductos.length}</span>
+                                            {compraEditando ? (
+                                                compraEditando.estado === 'pagado' 
+                                                ? '✅ Compra Pagada' 
+                                                : '💾 Guardar Cambios'
+                                            ) : (
+                                                '✅ Crear Compra'
+                                            )}
+                                            <span className="text-base sm:text-lg font-bold">
+                                                {selectedProductos.length} {compraEditando ? 'items' : 'prods'}
+                                            </span>
                                         </>
                                     )}
                                 </button>
