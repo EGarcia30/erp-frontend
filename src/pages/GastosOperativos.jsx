@@ -397,6 +397,23 @@ const GastosOperativos = () => {
         }, 0);
     };
 
+    const formatFechaUTCWithTime = (fechaUTC) => {
+        const date = new Date(fechaUTC);
+        const day = String(date.getDate()).padStart(2, '0');        // Local day
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Local month
+        const year = date.getFullYear();                            // Local year
+        
+        // Formato 12 horas con AM/PM - HORA LOCAL
+        let hours = date.getHours();
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'p.m.' : 'a.m.';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 -> 12
+        const hoursStr = String(hours).padStart(2, '0');
+        
+        return `${day}/${month}/${year} ${hoursStr}:${minutes} ${ampm}`;
+    };
+
     if (loading && gastos.length === 0) {
         return (
         <div className="min-h-screen flex items-center justify-center px-4 py-12">
@@ -511,10 +528,13 @@ const GastosOperativos = () => {
                         <span className="text-emerald-600">📋</span>
                         <span className="font-bold text-gray-900">{gasto.tipo_gasto?.replace('_', ' ').toUpperCase()}</span>
                         </p>
+                        <div className="flex items-start">
+                            <span className="text-sm font-bold text-gray-600">{formatFechaUTCWithTime(gasto.fecha_creado)}</span>
+                        </div>
                     </div>
 
                     {/* TOTAL - DESTACADO */}
-                    <div className="text-2xl lg:text-3xl font-black text-emerald-600 mb-8 bg-gradient-to-r from-emerald-50 to-green-50 p-6 rounded-2xl shadow-lg">
+                    <div className="text-2xl lg:text-3xl font-black text-emerald-600 mb-6 bg-gradient-to-r from-emerald-50 to-green-50 p-6 rounded-2xl shadow-lg">
                         -${formatDinero(gasto.total)}
                     </div>
 

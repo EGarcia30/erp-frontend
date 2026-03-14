@@ -382,14 +382,12 @@ const Compras = () => {
                                     <span className="font-normal">Dirección:</span> 
                                     <span className="font-bold ml-1">{compra.direccion}</span>
                                 </p>
-                                <p className="text-sm sm:text-base text-gray-500 mb-4">
-                                    <span className="font-normal">Fecha:</span> 
-                                    <span className="font-bold ml-1">{formatFechaUTCWithTime(compra.fecha_creado)}</span>
-                                </p>
-                                <div className="text-xl sm:text-2xl font-bold text-emerald-600 mb-6">
-                                    ${formatDinero(compra.total)}
+                                <div className="flex items-start">
+                                    <span className="text-sm font-bold text-gray-600">{formatFechaUTCWithTime(compra.fecha_creado)}</span>
                                 </div>
-                                
+                                <div className="text-2xl lg:text-3xl font-bold text-emerald-600 my-2 bg-gradient-to-r from-emerald-50 to-green-50 p-4 rounded-xl">
+                                ${formatDinero(compra.total)}
+                                </div>
                                 {/* ✅ BOTONES RESPONSIVE */}
                                 <div className="flex flex-col sm:flex-row gap-2 pt-4">
                                     {compra.estado === 'pendiente' && (

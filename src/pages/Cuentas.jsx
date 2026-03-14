@@ -550,6 +550,24 @@ const Cuentas = () => {
         fetchMesas(mesasPage);
     }, [mesasPage])
 
+    //Utils
+    const formatFechaUTCWithTime = (fechaUTC) => {
+        const date = new Date(fechaUTC);
+        const day = String(date.getDate()).padStart(2, '0');        // Local day
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Local month
+        const year = date.getFullYear();                            // Local year
+        
+        // Formato 12 horas con AM/PM - HORA LOCAL
+        let hours = date.getHours();
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'p.m.' : 'a.m.';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 -> 12
+        const hoursStr = String(hours).padStart(2, '0');
+        
+        return `${day}/${month}/${year} ${hoursStr}:${minutes} ${ampm}`;
+    };
+
 
     if (loading && cuentas.length === 0) {
         return (
@@ -655,16 +673,22 @@ const Cuentas = () => {
                             </span>
                         </div>
                         
-                        <div className="space-y-2 mb-6">
-                            <p className="inline text-lg text-gray-600 font-medium">Cliente: 
-                                <p className='inline text-lg font-bold text-gray-600 ms-2'>{cuenta.cliente.toUpperCase()}</p>
-                            </p>
+                        <div className="grid grid-cols-1 gap-4 mb-6">
+                            <div className="flex items-center">
+                                <span className="text-lg text-gray-600 font-medium min-w-[80px]">Cliente:</span>
+                                <span className="text-lg font-bold text-gray-600 ms-2">{cuenta.cliente.toUpperCase()}</span>
+                            </div>
+
                             {cuenta.mesa_id && (
-                                <p className="text-lg text-gray-600 font-medium">
-                                🪑 Mesa: 
-                                <p className='inline text-lg font-bold text-gray-600 ms-2'>{cuenta.numero_mesa}</p>
-                                </p>
+                                <div className="flex items-center">
+                                <span className="text-lg text-gray-600 font-medium min-w-[80px]">🪑 Mesa:</span>
+                                <span className="text-lg font-bold text-gray-600 ms-2">{cuenta.numero_mesa}</span>
+                                </div>
                             )}
+
+                            <div className="flex items-start">
+                                <span className="text-sm font-bold text-gray-600">{formatFechaUTCWithTime(cuenta.fecha_creado)}</span>
+                            </div>
                         </div>
 
                         <div className="text-2xl lg:text-3xl font-bold text-emerald-600 mb-6 bg-gradient-to-r from-emerald-50 to-green-50 p-4 rounded-xl">
@@ -691,6 +715,7 @@ const Cuentas = () => {
                             )}
                             </button>
                         )}
+                        
                         <button 
                             onClick={() => handleVerDetalle(cuenta.id)}
                             disabled={loadingDetail === cuenta.id}
