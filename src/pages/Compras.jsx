@@ -29,24 +29,43 @@ const Compras = () => {
     const [categorias, setCategorias] = useState([]);
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('N/A');
 
+    //buscador compras
+    const [searchComprasInput, setSearchComprasInput] = useState('');
+    const [searchCompras, setSearchCompras] = useState('');
+
+    //buscador productos en modal
+    const [searchProductoInput, setSearchProductoInput] = useState('');
+    const [searchProducto, setSearchProducto] = useState('');
+
     //FETCH PRINCIPAL COMPRAS, CATEGORIAS Y PRODUCTOS
      // Fetch compras
-    const fetchCompras = async (currentPage = 1) => {
+    const fetchCompras = async (currentPage = 1, searchTerm = '') => {
         try {
             setLoading(true);
-            const response = await fetch(`${apiURL}/compras?page=${currentPage}&limit=10`);
+            const params = new URLSearchParams({
+                page: currentPage,
+                limit: 10
+            });
+
+            if (searchTerm && searchTerm.trim() !== '') {
+                params.append('search', searchTerm);
+            }
+
+            const response = await fetch(`${apiURL}/compras?${params}`);
             const data = await response.json();
+
             if (data.success) {
                 setCompras(data.data);
                 setPagination(data.pagination);
             }
+
         } catch (error) {
             console.error('Error cargando compras:', error);
-        } finally {
+        }
+        finally {
             setLoading(false);
         }
     };
-
     // ✅ Cargar categorías al abrir modal
     const fetchCategorias = async () => {
         try {
@@ -61,34 +80,64 @@ const Compras = () => {
     };
 
     // PAGINACIÓN PRODUCTOS
-    const fetchProductos = async (currentPage = 1, categoria = 'N/A') => {
+    const fetchProductos = async (currentPage = 1, categoria = 'N/A', searchTerm = '') => {
         try {
+
             const params = new URLSearchParams({
                 page: currentPage,
                 limit: 10,
-                categoria: categoria
+                categoria
             });
+
+            if (searchTerm && searchTerm.trim() !== '') {
+                params.append('search', searchTerm);
+            }
+
             const response = await fetch(`${apiURL}/productos?${params}`);
             const data = await response.json();
+
             if (data.success) {
                 setProductos(data.data);
                 setProductosPagination(data.pagination);
             }
+
         } catch (error) {
             console.error('Error cargando productos:', error);
         }
+
     };
 
     //USEEFFECT PRINCIPAL
     useEffect(() => {
-        fetchCompras(page);
-    }, [page]);
+        fetchCompras(page, searchCompras);
+    }, [page, searchCompras]);
+
+
+    useEffect(() => {
+        const delay = setTimeout(() => {
+            setSearchCompras(searchComprasInput);
+            setPage(1);
+        }, 4000);
+
+        return () => clearTimeout(delay);
+
+    }, [searchComprasInput]);
 
     useEffect(() => {
         if (showCreateModal) {
-            fetchProductos(productosPage, categoriaSeleccionada);
+            fetchProductos(productosPage, categoriaSeleccionada, searchProducto);
         }
-    }, [showCreateModal, productosPage, categoriaSeleccionada]);
+    }, [showCreateModal, productosPage, categoriaSeleccionada, searchProducto]);
+
+    useEffect(() => {
+        const delay = setTimeout(() => {
+            setSearchProducto(searchProductoInput);
+            setProductosPage(1);
+        }, 4000);
+
+        return () => clearTimeout(delay);
+
+    }, [searchProductoInput]);
 
     //HANDLES CREAR COMPRA, VER DETALLE, PAGAR COMPRA, AUMENTAR/DISMINUIR CANTIDAD, BORRAR PRODUCTO, AGREGAR PRODUCTO
 
@@ -134,6 +183,9 @@ const Compras = () => {
         setSelectedProductos([]);
         setCreateForm({ proveedor: '', direccion: '', total: 0 });
         setCompraEditando(null);
+        setSearchProducto('')
+        setSearchProductoInput('')
+        setProductosPage(1)
         setProductosPage(1);
         setCategoriaSeleccionada('N/A');
     };
@@ -259,19 +311,24 @@ const Compras = () => {
     };
 
     const formatFechaUTCWithTime = (fechaUTC) => {
-        const date = new Date(fechaUTC);
-        const day = String(date.getDate()).padStart(2, '0');        // Local day
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Local month
-        const year = date.getFullYear();                            // Local year
-        
-        // Formato 12 horas con AM/PM - HORA LOCAL
-        let hours = date.getHours();
-        const minutes = String(date.getMinutes()).padStart(2, '0');
+        if (!fechaUTC) return '';
+
+        const date = new Date(fechaUTC.replace(' ', 'T'));
+
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const year = date.getUTCFullYear();
+
+        let hours = date.getUTCHours();
+        const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+
         const ampm = hours >= 12 ? 'p.m.' : 'a.m.';
+
         hours = hours % 12;
-        hours = hours ? hours : 12; // 0 -> 12
+        if (hours === 0) hours = 12;
+
         const hoursStr = String(hours).padStart(2, '0');
-        
+
         return `${day}/${month}/${year} ${hoursStr}:${minutes} ${ampm}`;
     };
 
@@ -301,6 +358,67 @@ const Compras = () => {
                         >
                             ➕ Nueva Compra
                         </button>
+                    </div>
+
+                    {/* 🔎 BUSCAR COMPRAS */}
+                    <div className="mb-6 flex justify-center">
+                        <div className="relative w-full max-w-lg">
+
+                            {/* icono */}
+                            <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                        d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+
+                            <input
+                                type="search"
+                                placeholder="Buscar compras por proveedor..."
+                                value={searchComprasInput}
+                                onChange={(e) => setSearchComprasInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+
+                                        setSearchCompras(searchComprasInput)
+                                        setPage(1)
+
+                                        // 📱 cerrar teclado móvil
+                                        e.target.blur()
+                                    }
+                                }}
+                                className="
+                                    w-full
+                                    pl-12 pr-10
+                                    py-3
+                                    bg-white
+                                    border border-gray-200
+                                    rounded-2xl
+                                    shadow-sm
+                                    placeholder-gray-400
+                                    transition-all
+                                    focus:outline-none
+                                    focus:border-emerald-400
+                                    focus:ring-4
+                                    focus:ring-emerald-100
+                                "
+                            />
+
+                            {/* limpiar búsqueda */}
+                            {searchComprasInput && (
+                                <button
+                                    onClick={() => {
+                                        setSearchComprasInput('')
+                                        setSearchCompras('')
+                                        setPage(1)
+                                    }}
+                                    className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600"
+                                >
+                                    ✕
+                                </button>
+                            )}
+
+                        </div>
                     </div>
 
                     {/* ✅ PAGINACIÓN COMPRAS*/}
@@ -554,26 +672,7 @@ const Compras = () => {
                             <div className="flex-1 overflow-y-auto">
                                 {/* ✅ LISTA PRODUCTOS + BOTÓN CREAR */}
                                 <div className="p-4 sm:p-6">   
-                                    <div className="mb-6 space-y-3">
-                                        {/* PAGINACIÓN */}
-                                        {productosPagination.totalPages > 1 && (
-                                            <div className="flex items-center justify-end gap-1 sm:gap-2 pt-4 pb-6">
-                                                <button
-                                                    onClick={() => setProductosPage(Math.max(1, productosPage - 1))}
-                                                    disabled={productosPage <= 1}
-                                                    className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center text-sm sm:text-base"
-                                                >
-                                                    ‹
-                                                </button>                                            
-                                                <button
-                                                    onClick={() => setProductosPage(Math.min(productosPagination.totalPages, productosPage + 1))}
-                                                    disabled={productosPage >= productosPagination.totalPages}
-                                                    className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center text-sm sm:text-base"
-                                                >
-                                                    ›
-                                                </button>
-                                            </div>
-                                        )}
+                                    <div className="mb-6 space-y-3">                                       
                                         {/* CATEGORÍAS - Scroll horizontal NATURAL */}
                                         <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
                                             {/* N/A */}
@@ -607,6 +706,92 @@ const Compras = () => {
                                                 </button>
                                             ))}
                                         </div>
+                                        {/* 🔎 BUSCAR PRODUCTO */}
+                                        <div className="mb-4">
+                                            <div className="relative">
+
+                                                {/* Icono */}
+                                                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                            d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                                    </svg>
+                                                </div>
+
+                                                <input
+                                                    type="search"
+                                                    placeholder="Buscar producto..."
+                                                    value={searchProductoInput}
+                                                    onChange={(e) => setSearchProductoInput(e.target.value)}
+                                                    onKeyDown={(e) => {
+
+                                                        if (e.key === "Enter") {
+                                                            setSearchProducto(searchProductoInput)
+                                                            setProductosPage(1)
+
+                                                            // 📱 cerrar teclado móvil
+                                                            e.target.blur()
+                                                        }
+
+                                                        // limpiar con ESC (extra UX)
+                                                        if (e.key === "Escape") {
+                                                            setSearchProductoInput('')
+                                                            setSearchProducto('')
+                                                        }
+
+                                                    }}
+                                                    className="
+                                                        w-full
+                                                        pl-10 pr-10
+                                                        py-2.5
+                                                        bg-white
+                                                        border border-gray-200
+                                                        rounded-xl
+                                                        shadow-sm
+                                                        placeholder-gray-400
+                                                        transition-all
+                                                        focus:outline-none
+                                                        focus:border-blue-400
+                                                        focus:ring-4
+                                                        focus:ring-blue-100
+                                                    "
+                                                />
+
+                                                {/* Botón limpiar */}
+                                                {searchProductoInput && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setSearchProductoInput('')
+                                                            setSearchProducto('')
+                                                            setProductosPage(1)
+                                                        }}
+                                                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                )}
+
+                                            </div>
+                                        </div>
+                                        {/* PAGINACIÓN */}
+                                        {productosPagination.totalPages > 1 && (
+                                            <div className="flex items-center justify-end gap-1 sm:gap-2 pt-4 pb-6">
+                                                <button
+                                                    onClick={() => setProductosPage(Math.max(1, productosPage - 1))}
+                                                    disabled={productosPage <= 1}
+                                                    className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center text-sm sm:text-base"
+                                                >
+                                                    ‹
+                                                </button>                                            
+                                                <button
+                                                    onClick={() => setProductosPage(Math.min(productosPagination.totalPages, productosPage + 1))}
+                                                    disabled={productosPage >= productosPagination.totalPages}
+                                                    className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center text-sm sm:text-base"
+                                                >
+                                                    ›
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>                                 
 
                                     {/* BOTONES PRODUCTOS - ESTILO PREMIUM */}

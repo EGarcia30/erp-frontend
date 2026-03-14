@@ -398,19 +398,24 @@ const GastosOperativos = () => {
     };
 
     const formatFechaUTCWithTime = (fechaUTC) => {
-        const date = new Date(fechaUTC);
-        const day = String(date.getDate()).padStart(2, '0');        // Local day
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Local month
-        const year = date.getFullYear();                            // Local year
-        
-        // Formato 12 horas con AM/PM - HORA LOCAL
-        let hours = date.getHours();
-        const minutes = String(date.getMinutes()).padStart(2, '0');
+        if (!fechaUTC) return '';
+
+        const date = new Date(fechaUTC.replace(' ', 'T'));
+
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const year = date.getUTCFullYear();
+
+        let hours = date.getUTCHours();
+        const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+
         const ampm = hours >= 12 ? 'p.m.' : 'a.m.';
+
         hours = hours % 12;
-        hours = hours ? hours : 12; // 0 -> 12
+        if (hours === 0) hours = 12;
+
         const hoursStr = String(hours).padStart(2, '0');
-        
+
         return `${day}/${month}/${year} ${hoursStr}:${minutes} ${ampm}`;
     };
 
