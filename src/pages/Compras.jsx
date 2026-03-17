@@ -113,15 +113,15 @@ const Compras = () => {
     }, [page, searchCompras]);
 
 
-    useEffect(() => {
-        const delay = setTimeout(() => {
-            setSearchCompras(searchComprasInput);
-            setPage(1);
-        }, 4000);
+    // useEffect(() => {
+    //     const delay = setTimeout(() => {
+    //         setSearchCompras(searchComprasInput);
+    //         setPage(1);
+    //     }, 4000);
 
-        return () => clearTimeout(delay);
+    //     return () => clearTimeout(delay);
 
-    }, [searchComprasInput]);
+    // }, [searchComprasInput]);
 
     useEffect(() => {
         if (showCreateModal) {
