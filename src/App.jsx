@@ -70,7 +70,7 @@ function App() {
     { to: '/compras',          label: 'Compras',           icon: '🛒' },
     { to: '/promociones',      label: 'Promociones',       icon: '🎉' },
     { to: '/historial',        label: 'Historial',         icon: '📋' },
-    { to: '/cuentas',          label: 'Cuentas',           icon: '💰' },
+    { to: '/cuentas',          label: 'Ventas',           icon: '💰' },
     { to: '/gastos-operativos',label: 'Gastos Operativos', icon: '💸' },
   ];
 
