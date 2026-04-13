@@ -1,4 +1,4 @@
-// Dashboard.jsx - COMPLETO con VUELTO INTEGRADO ✅
+// Dashboard.jsx
 import React, { useState, useEffect } from 'react';
 const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -7,56 +7,37 @@ const Dashboard = () => {
     const [productosStock, setProductosStock] = useState([]);
     const [ventas, setVentas] = useState([]);
     const [formasPago, setFormasPago] = useState([]);
-    const [vuelto, setVuelto] = useState({ total_vuelto: 0, transacciones_con_vuelto: 0 }); // ✅ NUEVO
+    const [vuelto, setVuelto] = useState({ total_vuelto: 0, transacciones_con_vuelto: 0 });
     const [loading, setLoading] = useState(true);
-    const [periodo, setPeriodo] = useState('turno');
+    const [periodo, setPeriodo] = useState('hoy');
 
-    const obtenerTurnoActualSV = () => {
-        const ahora = new Date();
-        const hora = ahora.getHours();
-        return (hora >= 17 || hora < 6);
-    };
-
-    const horaSV = () => new Date().toLocaleString('es-SV', {
-        timeZone: 'America/El_Salvador',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-    });
-
-    // ✅ UTILIDAD NETA CALCULADA
-    const utilNeta = (dashboard?.ventasPeriodo?.ingresos_periodo || 0) - 
-                     (dashboard?.ganancias?.costos || 0) - 
+    const utilNeta = (dashboard?.ventasPeriodo?.ingresos_periodo || 0) -
+                     (dashboard?.ganancias?.costos || 0) -
                      (dashboard?.gastosOperativos?.gastos_operativos || 0);
 
     const cargarDashboard = async (periodoFiltro) => {
         try {
             setLoading(true);
-            
-            const dashboardRes = await fetch(`${apiURL}/dashboard?filtro=${periodoFiltro}`);
-            const dashboardData = await dashboardRes.json();
-            
-            const productosRes = await fetch(`${apiURL}/dashboard/productos`);
-            const productosData = await productosRes.json();
-            
-            const ventasRes = await fetch(`${apiURL}/dashboard/ventas?page=1&limit=10&filtro=${periodoFiltro}`);
-            const ventasData = await ventasRes.json();
 
-            // ✅ CARGAR FORMAS DE PAGO
-            const formasPagoRes = await fetch(`${apiURL}/dashboard/formas-pago?filtro=${periodoFiltro}`);
-            const formasPagoData = await formasPagoRes.json();
+            const [dashboardRes, productosRes, ventasRes, formasPagoRes, vueltoRes] = await Promise.all([
+                fetch(`${apiURL}/dashboard?filtro=${periodoFiltro}`),
+                fetch(`${apiURL}/dashboard/productos`),
+                fetch(`${apiURL}/dashboard/ventas?page=1&limit=10&filtro=${periodoFiltro}`),
+                fetch(`${apiURL}/dashboard/formas-pago?filtro=${periodoFiltro}`),
+                fetch(`${apiURL}/dashboard/vuelto?filtro=${periodoFiltro}`),
+            ]);
 
-            // ✅ CARGAR VUELTO
-            const vueltoRes = await fetch(`${apiURL}/dashboard/vuelto?filtro=${periodoFiltro}`);
-            const vueltoData = await vueltoRes.json();
+            const [dashboardData, productosData, ventasData, formasPagoData, vueltoData] = await Promise.all([
+                dashboardRes.json(), productosRes.json(), ventasRes.json(),
+                formasPagoRes.json(), vueltoRes.json(),
+            ]);
 
-            if (dashboardData.success && productosData.success && ventasData.success && formasPagoData.success && vueltoData.success) {
+            if (dashboardData.success) {
                 setDashboard(dashboardData.data);
                 setProductosStock(productosData.data);
                 setVentas(ventasData.data);
                 setFormasPago(formasPagoData.data);
-                setVuelto(vueltoData.data); // ✅ NUEVO
+                setVuelto(vueltoData.data);
                 setPeriodo(periodoFiltro);
             }
         } catch (error) {
@@ -67,355 +48,231 @@ const Dashboard = () => {
     };
 
     useEffect(() => {
-        cargarDashboard('turno');
+        cargarDashboard('hoy');
     }, []);
 
-    const formatDinero = (numero) => {
-        return Number(numero ?? 0).toLocaleString('es-SV', { 
-            minimumFractionDigits: 2, 
-            maximumFractionDigits: 2 
-        });
-    };
+    const formatDinero = (numero) => Number(numero ?? 0).toLocaleString('es-SV', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
 
-    const esTurnoNoche = obtenerTurnoActualSV();
+    const filtros = [
+        { key: 'ayer',   label: 'Ayer' },
+        { key: 'hoy',    label: 'Hoy' },
+        { key: 'semana', label: 'Semana' },
+        { key: 'mes',    label: 'Mes' },
+        { key: 'año',    label: 'Año' },
+    ];
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-emerald-50 p-4">
-                <div className="text-center max-w-md mx-auto">
-                    <div className="w-20 h-20 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mx-auto mb-6"></div>
-                    <p className="text-2xl font-bold text-gray-700">Cargando Dashboard SV...</p>
-                    <p className="text-sm text-gray-500 mt-2">🕐 America/El_Salvador</p>
+            <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #f8f8f6 0%, #eeeee8 40%, #e8ede8 100%)' }}>
+                <div className="text-center">
+                    <div className="w-10 h-10 border-2 border-gray-300 border-t-gray-800 rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-sm font-medium" style={{ color: '#888' }}>Cargando dashboard...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50 py-6 px-3 sm:py-8 sm:px-4 lg:px-8">
-            <div className="max-w-7xl mx-auto">
-                {/* HEADER CON RELOJ SV - MEJOR RESPONSIVO */}
-                <div className="text-center mb-12 sm:mb-16">
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-6">
-                        <div className="bg-white/90 backdrop-blur-xl px-4 sm:px-6 py-3 rounded-2xl border border-emerald-200 shadow-xl w-full sm:w-auto">
-                            <span className="text-xl sm:text-2xl lg:text-3xl font-black">{horaSV()}</span>
-                            <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-bold text-gray-600 block sm:inline">SV</span>
-                        </div>
-                        <div className={`px-3 sm:px-4 py-2 rounded-2xl font-bold text-sm shadow-lg w-full sm:w-auto text-center ${
-                            esTurnoNoche 
-                                ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white' 
-                                : 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white'
-                        }`}>
-                            {esTurnoNoche ? '🌙 TURNO NOCHE' : '☀️ TURNO DÍA'}
-                        </div>
-                    </div>
-                    <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black mb-4 leading-tight">
-                        📊 Reportes
-                    </h1>
-                    <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
-                        Métricas en tiempo real.
-                    </p>
+        <div className="min-h-screen py-8 px-4 lg:px-8 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #f8f8f6 0%, #eeeee8 40%, #e8ede8 100%)' }}>
+
+            {/* Círculos decorativos */}
+            <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full pointer-events-none" style={{ background: 'rgba(163,181,163,0.12)' }} />
+            <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full pointer-events-none" style={{ background: 'rgba(163,181,163,0.08)' }} />
+
+            <div className="max-w-7xl mx-auto relative z-10">
+
+                {/* HEADER */}
+                <div className="mb-10">
+                    <h1 className="text-3xl font-medium mb-1" style={{ color: '#111' }}>Reportes</h1>
+                    <p className="text-sm" style={{ color: '#888' }}>Métricas en tiempo real · {new Date().toLocaleDateString('es-SV', { timeZone: 'America/El_Salvador' })}</p>
                 </div>
 
-                {/* FILTRO - MEJOR RESPONSIVO */}
-                <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-4 sm:p-6 lg:p-8 shadow-2xl border border-white/50 mb-12 sm:mb-16">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap justify-center items-center gap-3 sm:gap-4 mb-6">
-                        {[
-                            { key: 'turno', label: '🌙 TURNO (5:00p.m-06:00a.m.)', color: 'purple' },
-                            { key: 'hoy', label: '📅 Hoy', color: 'emerald' },
-                            { key: 'semana', label: '📊 Semana', color: 'blue' },
-                            { key: 'mes', label: '📈 Mes', color: 'indigo' },
-                            { key: 'año', label: '📉 Año', color: 'orange' }
-                        ].map(filtro => (
-                            <button
-                                key={filtro.key}
-                                onClick={() => cargarDashboard(filtro.key)}
-                                className={`group px-3 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg shadow-xl transition-all duration-300 hover:scale-105 border-2 flex-1 min-w-[140px] lg:min-w-0 ${
-                                    periodo === filtro.key
-                                        ? `bg-gradient-to-r from-${filtro.color}-500 to-${filtro.color}-600 shadow-${filtro.color}-400/50 border-${filtro.color}-400 text-white`
-                                        : `bg-white hover:bg-${filtro.color}-50 text-gray-800 border-gray-200 hover:border-${filtro.color}-300 hover:shadow-${filtro.color}-200`
-                                }`}
-                            >
-                                <span className="text-xl sm:text-2xl group-hover:scale-110 transition-transform block mb-1">{filtro.label.split(' ')[0]}</span>
-                                <span className="text-xs sm:text-sm">{filtro.label.split(' ').slice(1).join(' ')}</span>
-                            </button>
-                        ))}
-                    </div>
-                    <div className="text-center">
-                        <span className="text-base sm:text-lg font-bold text-gray-700 bg-gray-100 px-4 sm:px-6 py-3 rounded-2xl inline-block">
-                            Período activo: <span className={`text-${periodo === 'turno' ? 'purple' : 'emerald'}-600 font-black`}>{periodo.toUpperCase()}</span>
-                        </span>
-                    </div>
+                {/* FILTROS */}
+                <div className="flex flex-wrap gap-2 mb-10">
+                    {filtros.map(f => (
+                        <button
+                            key={f.key}
+                            onClick={() => cargarDashboard(f.key)}
+                            className="px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                            style={periodo === f.key
+                                ? { background: '#222', color: '#fff', border: '0.5px solid #222' }
+                                : { background: '#fff', color: '#555', border: '0.5px solid #e0e0da' }
+                            }
+                        >
+                            {f.label}
+                        </button>
+                    ))}
                 </div>
 
-                {/* ✅ SECCIÓN FORMAS DE PAGO - MISMO ESTILO QUE LAS 4 PRINCIPALES */}
+                {/* FORMAS DE PAGO */}
                 {formasPago.length > 0 && (
-                    <div className="mb-12 sm:mb-16">
-                        <div className="flex items-center justify-between mb-4 sm:mb-6">
-                            <span className="text-2xl sm:text-3xl lg:text-4xl">💳</span>
-                            <span className="px-2 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm shadow-lg whitespace-nowrap">
-                                FORMAS DE PAGO ({formasPago.length})
-                            </span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+                    <div className="mb-8">
+                        <p className="text-xs tracking-widest mb-4" style={{ color: '#999' }}>FORMAS DE PAGO</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                             {formasPago.map((fp, index) => (
-                                <div key={fp.codigo || fp.id || index} className="group bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl hover:shadow-3xl transition-all hover:-translate-y-2 border-4 border-purple-200/50 backdrop-blur-xl h-full relative overflow-hidden">
-                                    <div className="flex items-center justify-between mb-4 sm:mb-6">
-                                        <span className="text-2xl sm:text-3xl lg:text-4xl">💳</span>
-                                        <span className="px-2 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm shadow-lg whitespace-nowrap">
-                                            {fp.codigo?.toUpperCase() || 'FP'}
-                                        </span>
+                                <div key={fp.codigo || index} className="rounded-2xl p-6" style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 2px 16px rgba(0,0,0,0.05)' }}>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <p className="text-xs tracking-widest" style={{ color: '#999' }}>{fp.codigo?.toUpperCase()}</p>
+                                        <span className="text-xs px-2 py-1 rounded-md" style={{ background: '#f5f5f0', color: '#888' }}>{fp.porcentaje}%</span>
                                     </div>
-                                    <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-purple-600 mb-2 sm:mb-4 leading-tight">
-                                        ${formatDinero(fp.total_ventas)}
-                                    </p>
-                                    <p className="text-lg sm:text-xl font-semibold text-gray-700 text-sm sm:text-base">
-                                        {fp.nombre} • {fp.total_transacciones} trans.
-                                    </p>
-                                    <p className="text-sm sm:text-base font-bold text-purple-600 mt-2">
-                                        {fp.porcentaje}% del total
-                                    </p>
+                                    <p className="text-2xl font-medium mb-1" style={{ color: '#111' }}>${formatDinero(fp.total_ventas)}</p>
+                                    <p className="text-xs" style={{ color: '#aaa' }}>{fp.nombre} · {fp.total_transacciones} trans.</p>
                                 </div>
                             ))}
                         </div>
                     </div>
                 )}
 
-                {/* ✅ 5 CARTAS PRINCIPALES CON VUELTO */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mb-12 sm:mb-16">
-                    {/* 1. GASTOS OPERATIVOS */}
-                    <div className="group bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl hover:shadow-3xl transition-all hover:-translate-y-2 border-4 border-amber-200/50 backdrop-blur-xl h-full">
-                        <div className="flex items-center justify-between mb-4 sm:mb-6">
-                            <span className="text-2xl sm:text-3xl lg:text-4xl">🏢</span>
-                            <span className="px-2 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm shadow-lg whitespace-nowrap">GASTOS OP.</span>
-                        </div>
-                        <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-amber-600 mb-2 sm:mb-4 leading-tight">
-                            ${formatDinero(dashboard?.gastosOperativos?.gastos_operativos)}
-                        </p>
-                        <p className="text-lg sm:text-xl font-semibold text-gray-700 text-sm sm:text-base">
-                            {dashboard?.gastosOperativos?.total_gastos || 0} gastos ({periodo})
-                        </p>
-                    </div>
+                {/* MÉTRICAS PRINCIPALES */}
+                <div className="mb-8">
+                    <p className="text-xs tracking-widest mb-4" style={{ color: '#999' }}>RESUMEN · {periodo.toUpperCase()}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
 
-                    {/* 2. COSTO PRODUCTOS */}
-                    <div className="group bg-gradient-to-br from-red-50 to-rose-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl hover:shadow-3xl transition-all hover:-translate-y-2 border-4 border-red-200/50 backdrop-blur-xl h-full">
-                        <div className="flex items-center justify-between mb-4 sm:mb-6">
-                            <span className="text-2xl sm:text-3xl lg:text-4xl">💸</span>
-                            <span className="px-2 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm shadow-lg whitespace-nowrap">COSTO PROD.</span>
+                        {/* Ventas */}
+                        <div className="rounded-2xl p-6" style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 2px 16px rgba(0,0,0,0.05)' }}>
+                            <p className="text-xs tracking-widest mb-3" style={{ color: '#999' }}>VENTAS</p>
+                            <p className="text-3xl font-medium mb-1" style={{ color: '#111' }}>${formatDinero(dashboard?.ventasPeriodo?.ingresos_periodo)}</p>
+                            <p className="text-xs" style={{ color: '#aaa' }}>{dashboard?.ventasPeriodo?.ventas_periodo || 0} ventas</p>
                         </div>
-                        <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-red-600 mb-2 sm:mb-4 leading-tight">
-                            ${formatDinero(dashboard?.ganancias?.costos)}
-                        </p>
-                        <p className="text-lg sm:text-xl font-semibold text-gray-700 text-sm sm:text-base">Productos ({periodo})</p>
-                    </div>
 
-                    {/* ✅ 3. VUELTO */}
-                    <div className="group bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl hover:shadow-3xl transition-all hover:-translate-y-2 border-4 border-orange-200/50 backdrop-blur-xl h-full">
-                        <div className="flex items-center justify-between mb-4 sm:mb-6">
-                            <span className="text-2xl sm:text-3xl lg:text-4xl">💵</span>
-                            <span className="px-2 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm shadow-lg whitespace-nowrap">VUELTO</span>
+                        {/* Costo productos */}
+                        <div className="rounded-2xl p-6" style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 2px 16px rgba(0,0,0,0.05)' }}>
+                            <p className="text-xs tracking-widest mb-3" style={{ color: '#999' }}>COSTO PRODUCTOS</p>
+                            <p className="text-3xl font-medium mb-1" style={{ color: '#111' }}>${formatDinero(dashboard?.ganancias?.costos)}</p>
+                            <p className="text-xs" style={{ color: '#aaa' }}>Costo de ventas ({periodo})</p>
                         </div>
-                        <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-orange-600 mb-2 sm:mb-4 leading-tight">
-                            ${formatDinero(vuelto?.total_vuelto)}
-                        </p>
-                        <p className="text-lg sm:text-xl font-semibold text-gray-700 text-sm sm:text-base">
-                            {vuelto?.transacciones_con_vuelto || 0} transacciones
-                        </p>
-                    </div>
 
-                    {/* 4. FORMAS DE PAGO - TOTAL ACUMULADO (igual estilo que "VENTAS") */}
-                    <div className="group bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl hover:shadow-3xl transition-all hover:-translate-y-2 border-4 border-purple-200/50 backdrop-blur-xl h-full">
-                        <div className="flex items-center justify-between mb-4 sm:mb-6">
-                        <span className="text-2xl sm:text-3xl lg:text-4xl">💳</span>
-                        <span className="px-2 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm shadow-lg whitespace-nowrap">
-                            FORMAS DE PAGO
-                        </span>
+                        {/* Gastos operativos */}
+                        <div className="rounded-2xl p-6" style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 2px 16px rgba(0,0,0,0.05)' }}>
+                            <p className="text-xs tracking-widest mb-3" style={{ color: '#999' }}>GASTOS OPERATIVOS</p>
+                            <p className="text-3xl font-medium mb-1" style={{ color: '#111' }}>${formatDinero(dashboard?.gastosOperativos?.gastos_operativos)}</p>
+                            <p className="text-xs" style={{ color: '#aaa' }}>{dashboard?.gastosOperativos?.total_gastos || 0} gastos</p>
                         </div>
-                        <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-purple-600 mb-2 sm:mb-4 leading-tight">
-                        ${formatDinero(
-                            formasPago.reduce((acc, fp) => acc + (parseFloat(fp.total_ventas) || 0), 0)
-                        )}
-                        </p>
-                        <p className="text-lg sm:text-xl font-semibold text-gray-700 text-sm sm:text-base">
-                        {formasPago.length} formas de pago ({periodo})
-                        </p>
-                    </div>
 
-
-                    {/* 4. VENTAS */}
-                    <div className="group bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl hover:shadow-3xl transition-all hover:-translate-y-2 border-4 border-emerald-200/50 backdrop-blur-xl h-full">
-                        <div className="flex items-center justify-between mb-4 sm:mb-6">
-                            <span className="text-2xl sm:text-3xl lg:text-4xl">💰</span>
-                            <span className="px-2 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm shadow-lg whitespace-nowrap">VENTAS</span>
+                        {/* Vuelto */}
+                        <div className="rounded-2xl p-6" style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 2px 16px rgba(0,0,0,0.05)' }}>
+                            <p className="text-xs tracking-widest mb-3" style={{ color: '#999' }}>VUELTO</p>
+                            <p className="text-3xl font-medium mb-1" style={{ color: '#111' }}>${formatDinero(vuelto?.total_vuelto)}</p>
+                            <p className="text-xs" style={{ color: '#aaa' }}>{vuelto?.transacciones_con_vuelto || 0} transacciones</p>
                         </div>
-                        <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-emerald-600 mb-2 sm:mb-4 leading-tight">
-                            ${formatDinero(dashboard?.ventasPeriodo?.ingresos_periodo)}
-                        </p>
-                        <p className="text-lg sm:text-xl font-semibold text-gray-700 text-sm sm:text-base">
-                            {dashboard?.ventasPeriodo?.ventas_periodo || 0} ventas
-                        </p>
-                    </div>
 
-                    {/* 5. UTILIDAD NETA */}
-                    <div className="group bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl hover:shadow-3xl transition-all hover:-translate-y-2 border-4 border-blue-200/50 backdrop-blur-xl h-full">
-                        <div className="flex items-center justify-between mb-4 sm:mb-6">
-                            <span className="text-2xl sm:text-3xl lg:text-4xl">📈</span>
-                            <span className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl font-bold shadow-lg text-white text-xs sm:text-sm whitespace-nowrap ${
-                                utilNeta >= 0 
-                                    ? 'bg-gradient-to-r from-emerald-500 to-teal-600' 
-                                    : 'bg-gradient-to-r from-red-500 to-rose-600'
-                            }`}>
-                                UTILIDAD NETA
-                            </span>
+                        {/* Formas de pago total */}
+                        <div className="rounded-2xl p-6" style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 2px 16px rgba(0,0,0,0.05)' }}>
+                            <p className="text-xs tracking-widest mb-3" style={{ color: '#999' }}>TOTAL FORMAS DE PAGO</p>
+                            <p className="text-3xl font-medium mb-1" style={{ color: '#111' }}>
+                                ${formatDinero(formasPago.reduce((acc, fp) => acc + (parseFloat(fp.total_ventas) || 0), 0))}
+                            </p>
+                            <p className="text-xs" style={{ color: '#aaa' }}>{formasPago.length} formas de pago</p>
                         </div>
-                        <p className={`text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black mb-2 sm:mb-4 leading-tight ${
-                            utilNeta >= 0 ? 'text-emerald-600' : 'text-red-600'
-                        }`}>
-                            ${formatDinero(utilNeta)}
-                        </p>
-                        <p className={`text-lg sm:text-xl font-semibold text-sm sm:text-base ${
-                            utilNeta >= 0 ? 'text-emerald-700' : 'text-red-700'
-                        }`}>
-                            {utilNeta >= 0 ? '💰 Ganancia' : '📉 Pérdida'}
-                        </p>
+
+                        {/* Utilidad neta */}
+                        <div className="rounded-2xl p-6" style={{ background: utilNeta >= 0 ? '#f4faf4' : '#fdf4f4', border: `0.5px solid ${utilNeta >= 0 ? '#c8e6c8' : '#f0d0d0'}`, boxShadow: '0 2px 16px rgba(0,0,0,0.05)' }}>
+                            <p className="text-xs tracking-widest mb-3" style={{ color: '#999' }}>UTILIDAD NETA</p>
+                            <p className="text-3xl font-medium mb-1" style={{ color: utilNeta >= 0 ? '#2a7a2a' : '#a03030' }}>${formatDinero(utilNeta)}</p>
+                            <p className="text-xs" style={{ color: utilNeta >= 0 ? '#6aaa6a' : '#c07070' }}>{utilNeta >= 0 ? 'Ganancia' : 'Pérdida'}</p>
+                        </div>
                     </div>
                 </div>
 
-                {/* STOCK CRÍTICO + TOP PRODUCTOS - MEJOR RESPONSIVO */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 mb-12 sm:mb-16">
-                    {/* STOCK CRÍTICO */}
-                    <div className="bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl border border-white/50">
-                        <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-                            📦 Stock Crítico
-                            <span className="px-3 sm:px-5 py-1.5 sm:py-2 bg-red-100 text-red-800 text-base sm:text-lg font-bold rounded-xl sm:rounded-2xl shadow-lg whitespace-nowrap">
-                                {parseInt(dashboard?.stockCritico) || 0}
+                {/* STOCK CRÍTICO + TOP PRODUCTOS */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+                    {/* Stock crítico */}
+                    <div className="rounded-2xl p-6" style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 2px 16px rgba(0,0,0,0.05)' }}>
+                        <div className="flex items-center justify-between mb-6">
+                            <p className="text-sm font-medium" style={{ color: '#111' }}>Stock Crítico</p>
+                            <span className="text-xs px-3 py-1 rounded-md" style={{ background: '#fdf4f4', color: '#a03030', border: '0.5px solid #f0d0d0' }}>
+                                {parseInt(dashboard?.stockCritico) || 0} productos
                             </span>
-                        </h3>
-                        <div className="space-y-3 sm:space-y-4 max-h-80 sm:max-h-96 lg:max-h-[inherit] overflow-y-auto">
+                        </div>
+                        <div className="space-y-3 max-h-80 overflow-y-auto">
                             {productosStock.slice(0, 6).map(producto => (
-                                <div key={producto.id} className={`p-4 sm:p-6 rounded-2xl border-l-6 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
-                                    producto.status === 'danger' ? 'bg-red-50 border-red-500' :
-                                    producto.status === 'warning' ? 'bg-orange-50 border-orange-500' : 
-                                    'bg-emerald-50 border-emerald-500'
-                                }`}>
-                                    <div className="flex items-center gap-3 sm:gap-4 flex-1 w-full">
-                                        <span className="text-xl sm:text-3xl flex-shrink-0">🍺</span>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="font-bold text-lg sm:text-xl text-gray-900 truncate">{producto.descripcion}</p>
-                                            <p className="text-xs sm:text-sm text-gray-600">{producto.presentacion}</p>
-                                        </div>
+                                <div key={producto.id} className="flex items-center justify-between p-3 rounded-xl" style={{ background: '#fafafa', border: '0.5px solid #e8e8e2' }}>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-medium truncate" style={{ color: '#222' }}>{producto.descripcion}</p>
+                                        <p className="text-xs" style={{ color: '#aaa' }}>{producto.presentacion}</p>
                                     </div>
-                                    <div className="text-right w-full sm:w-auto">
-                                        <p className={`text-2xl sm:text-3xl font-black ${
-                                            producto.status === 'danger' ? 'text-red-600' :
-                                            producto.status === 'warning' ? 'text-orange-600' : 'text-emerald-600'
-                                        }`}>
+                                    <div className="text-right ml-4">
+                                        <p className="text-sm font-medium" style={{ color: producto.status === 'danger' ? '#a03030' : producto.status === 'warning' ? '#a06030' : '#2a7a2a' }}>
                                             {parseInt(producto.cantidad_disponible)}
                                         </p>
-                                        <p className="text-xs sm:text-xs text-gray-500">mín: {parseInt(producto.cantidad_minima)}</p>
+                                        <p className="text-xs" style={{ color: '#ccc' }}>mín {parseInt(producto.cantidad_minima)}</p>
                                     </div>
                                 </div>
                             ))}
                             {productosStock.length === 0 && (
-                                <p className="text-gray-500 text-center py-16 sm:py-20 text-lg sm:text-xl">✅ Sin productos críticos</p>
+                                <p className="text-center py-10 text-sm" style={{ color: '#aaa' }}>Sin productos críticos</p>
                             )}
                         </div>
                     </div>
 
-                    {/* TOP PRODUCTOS */}
-                    <div className="bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl border border-white/50">
-                        <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">
-                            🏆 Top Productos <span className="text-base sm:text-lg text-gray-500">({periodo})</span>
-                        </h3>
-                        <div className="space-y-3 sm:space-y-4 max-h-80 sm:max-h-96 lg:max-h-[inherit] overflow-y-auto">
+                    {/* Top productos */}
+                    <div className="rounded-2xl p-6" style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 2px 16px rgba(0,0,0,0.05)' }}>
+                        <p className="text-sm font-medium mb-6" style={{ color: '#111' }}>Top Productos <span style={{ color: '#aaa', fontWeight: 400 }}>({periodo})</span></p>
+                        <div className="space-y-3 max-h-80 overflow-y-auto">
                             {dashboard?.topProductos?.slice(0, 6).map((prod, i) => (
-                                <div key={prod.descripcion} className="p-4 sm:p-6 bg-gradient-to-r from-emerald-50 via-blue-50 to-emerald-50 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:shadow-xl transition-all border border-emerald-200/50">
-                                    <div className="flex items-center gap-3 sm:gap-4 w-full">
-                                        <span className="w-10 sm:w-14 h-10 sm:h-14 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl sm:rounded-2xl flex items-center justify-center font-bold text-lg sm:text-2xl shadow-2xl flex-shrink-0">
-                                            #{i + 1}
-                                        </span>
-                                        <span className="text-xl sm:text-3xl flex-shrink-0">🍺</span>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="font-bold text-lg sm:text-xl text-gray-900 truncate">{prod.descripcion}</p>
-                                            <p className="text-xs sm:text-sm text-gray-600">{prod.presentacion}</p>
+                                <div key={prod.descripcion} className="flex items-center justify-between p-3 rounded-xl" style={{ background: '#fafafa', border: '0.5px solid #e8e8e2' }}>
+                                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                                        <span className="text-xs font-medium w-6 text-right flex-shrink-0" style={{ color: '#bbb' }}>#{i + 1}</span>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium truncate" style={{ color: '#222' }}>{prod.descripcion}</p>
+                                            <p className="text-xs" style={{ color: '#aaa' }}>{prod.presentacion}</p>
                                         </div>
                                     </div>
-                                    <div className="text-right w-full sm:w-auto">
-                                        <p className="text-xl sm:text-2xl font-bold text-emerald-600">
-                                            ${parseFloat(prod.ingresos || 0).toLocaleString('es-SV')}
-                                        </p>
-                                        <p className="text-base sm:text-lg text-gray-600">{prod.total_vendido || 0} unid.</p>
+                                    <div className="text-right ml-4">
+                                        <p className="text-sm font-medium" style={{ color: '#111' }}>${parseFloat(prod.ingresos || 0).toLocaleString('es-SV')}</p>
+                                        <p className="text-xs" style={{ color: '#aaa' }}>{prod.total_vendido || 0} unid.</p>
                                     </div>
                                 </div>
-                            )) || <p className="text-gray-500 text-center py-16 sm:py-20 text-lg sm:text-xl">📈 Sin datos</p>}
+                            )) || <p className="text-center py-10 text-sm" style={{ color: '#aaa' }}>Sin datos</p>}
                         </div>
                     </div>
                 </div>
 
-                {/* ÚLTIMAS VENTAS - MEJOR RESPONSIVO */}
-                <div className="bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl border border-white/50 overflow-hidden mb-12 sm:mb-16">
-                    <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 flex items-center gap-3 flex-wrap">
-                        💸 Últimas Ventas <span className="text-base sm:text-lg text-gray-500">({periodo})</span>
-                    </h3>
+                {/* ÚLTIMAS VENTAS */}
+                <div className="rounded-2xl p-6 mb-8" style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 2px 16px rgba(0,0,0,0.05)' }}>
+                    <p className="text-sm font-medium mb-6" style={{ color: '#111' }}>Últimas Ventas <span style={{ color: '#aaa', fontWeight: 400 }}>({periodo})</span></p>
                     <div className="overflow-x-auto">
-                        <table className="w-full min-w-[650px] sm:min-w-[750px]">
+                        <table className="w-full min-w-[600px]">
                             <thead>
-                                <tr className="border-b-4 border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
-                                    <th className="text-left py-4 sm:py-6 px-3 sm:px-6 font-bold text-lg sm:text-xl text-gray-900">Cliente</th>
-                                    <th className="text-left py-4 sm:py-6 px-3 sm:px-6 font-bold text-lg sm:text-xl text-gray-900 hidden sm:table-cell">Total</th>
-                                    <th className="text-left py-4 sm:py-6 px-3 sm:px-6 font-bold text-lg sm:text-xl text-gray-900 hidden sm:table-cell">Estado</th>
-                                    <th className="text-left py-4 sm:py-6 px-3 sm:px-6 font-bold text-lg sm:text-xl text-gray-900 hidden sm:table-cell">Items</th>
-                                    <th className="text-right py-4 sm:py-6 px-3 sm:px-6 font-bold text-lg sm:text-xl text-gray-900">Fecha SV</th>
+                                <tr style={{ borderBottom: '0.5px solid #e8e8e2' }}>
+                                    {['Cliente', 'Total', 'Estado', 'Items', 'Fecha'].map(h => (
+                                        <th key={h} className="text-left py-3 px-3 text-xs tracking-widest font-medium" style={{ color: '#999' }}>{h.toUpperCase()}</th>
+                                    ))}
                                 </tr>
                             </thead>
                             <tbody>
                                 {ventas.map(venta => (
-                                    <tr key={venta.id} className="border-b-2 border-gray-100 hover:bg-emerald-50/50 transition-all">
-                                        <td className="py-4 sm:py-6 px-3 sm:px-6 font-bold text-base sm:text-lg text-gray-900 max-w-[200px] truncate">
-                                            {venta.cliente || '👤 Cliente walk-in'}
-                                        </td>
-                                        <td className="py-4 sm:py-6 px-3 sm:px-6 font-black text-lg sm:text-2xl text-emerald-600 hidden sm:table-cell">
-                                            ${parseFloat(venta.total || 0).toLocaleString('es-SV', {minimumFractionDigits: 2})}
-                                        </td>
-                                        <td className="py-4 sm:py-6 px-3 sm:px-6 hidden sm:table-cell">
-                                            <span className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-base sm:text-lg font-bold shadow-lg ${
-                                                venta.estado === 'pagado' 
-                                                    ? 'bg-emerald-100 text-emerald-800 shadow-emerald-300/50' 
-                                                    : 'bg-orange-100 text-orange-800 shadow-orange-300/50'
-                                            }`}>
-                                                {venta.estado === 'pagado' ? '✅ PAGADO' : '⏳ PENDIENTE'}
+                                    <tr key={venta.id} style={{ borderBottom: '0.5px solid #f0f0ea' }}>
+                                        <td className="py-3 px-3 text-sm font-medium max-w-[180px] truncate" style={{ color: '#222' }}>{venta.cliente || 'Walk-in'}</td>
+                                        <td className="py-3 px-3 text-sm font-medium" style={{ color: '#111' }}>${parseFloat(venta.total || 0).toLocaleString('es-SV', { minimumFractionDigits: 2 })}</td>
+                                        <td className="py-3 px-3">
+                                            <span className="text-xs px-2 py-1 rounded-md" style={venta.estado === 'pagado'
+                                                ? { background: '#f4faf4', color: '#2a7a2a', border: '0.5px solid #c8e6c8' }
+                                                : { background: '#fdfaf4', color: '#7a6a2a', border: '0.5px solid #e6d8a0' }
+                                            }>
+                                                {venta.estado === 'pagado' ? 'Pagado' : 'Pendiente'}
                                             </span>
                                         </td>
-                                        <td className="py-4 sm:py-6 px-3 sm:px-6 font-bold text-base sm:text-xl text-gray-900 hidden sm:table-cell">{venta.items || 0}</td>
-                                        <td className="py-4 sm:py-6 px-3 sm:px-6 text-base sm:text-lg text-gray-700 font-semibold text-right">
-                                            {new Date(venta.fecha_creado).toLocaleDateString('es-SV')}
-                                        </td>
+                                        <td className="py-3 px-3 text-sm" style={{ color: '#888' }}>{venta.items || 0}</td>
+                                        <td className="py-3 px-3 text-sm" style={{ color: '#888' }}>{new Date(venta.fecha_creado).toLocaleDateString('es-SV')}</td>
                                     </tr>
                                 ))}
                                 {ventas.length === 0 && (
-                                    <tr>
-                                        <td colSpan="5" className="py-16 sm:py-20 text-center text-gray-500 text-lg sm:text-xl">
-                                            Sin ventas recientes
-                                        </td>
-                                    </tr>
+                                    <tr><td colSpan="5" className="py-10 text-center text-sm" style={{ color: '#aaa' }}>Sin ventas recientes</td></tr>
                                 )}
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                {/* FOOTER - MEJOR RESPONSIVO */}
-                <div className="text-center py-8 sm:py-12 bg-white/60 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-emerald-200/50 shadow-xl">
-                    <p className="text-xl sm:text-2xl font-bold text-emerald-700 mb-3 sm:mb-4">
-                        🕐 Actualizado: {new Date().toLocaleString('es-SV', { timeZone: 'America/El_Salvador' })}
-                    </p>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 text-base sm:text-lg text-gray-600">
-                        <span>📍 America/El_Salvador (UTC-6)</span>
-                        <span className="px-4 sm:px-6 py-2 sm:py-3 bg-emerald-100 text-emerald-800 rounded-xl sm:rounded-2xl font-bold shadow-lg">
-                            Turno 5:00p.m.-06:00a.m.
-                        </span>
-                    </div>
-                </div>
+                {/* FOOTER */}
+                <p className="text-center text-xs" style={{ color: '#bbb' }}>
+                    Actualizado: {new Date().toLocaleString('es-SV', { timeZone: 'America/El_Salvador' })} · UTC-6
+                </p>
             </div>
         </div>
     );

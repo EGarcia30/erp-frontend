@@ -134,10 +134,10 @@ const Historial = () => {
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-12 gap-4">
                         <div>
                             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-2">
-                                📊 Historial Cuentas
+                                📊 Historial Ventas
                             </h1>
                             <p className="text-xl text-gray-600">
-                                {pagination.totalItems || 0} cuentas | Pg {currentPage} de {pagination.totalPages || 1}
+                                {pagination.totalItems || 0} ventas | Pg {currentPage} de {pagination.totalPages || 1}
                             </p>
                         </div>
                     </div>
@@ -196,7 +196,7 @@ const Historial = () => {
                         {/* INFO ACTUAL */}
                         <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200">
                             <p className="text-lg font-bold text-gray-800">
-                                {historial.length} cuentas encontradas
+                                {historial.length} ventas encontradas
                             </p>
                             <p className="text-sm text-gray-600">
                                 {filtros.periodo} / {filtros.estado} | Pg {currentPage}
@@ -278,10 +278,10 @@ const Historial = () => {
                     {historial.length === 0 && !loading && (
                         <div className="text-center py-24">
                             <div className="text-8xl mb-8">📋</div>
-                            <h2 className="text-3xl font-bold text-gray-900 mb-4">No se encontraron cuentas</h2>
+                            <h2 className="text-3xl font-bold text-gray-900 mb-4">No se encontraron ventas</h2>
                             <p className="text-xl text-gray-600 mb-8">
                                 {filtros.periodo === 'todo' && filtros.estado === 'todo' 
-                                    ? 'Crea nuevas cuentas para ver el historial'
+                                    ? 'Crea nuevas ventas para ver el historial'
                                     : 'Ajusta los filtros para ver resultados'
                                 }
                             </p>
@@ -301,7 +301,7 @@ const Historial = () => {
                             <div className="flex justify-between items-center mb-6">
                                 <div>
                                     <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                                        Detalle Cuenta #{selectedCuenta.id}
+                                        Detalle Venta #{selectedCuenta.id}
                                     </h2>
                                     <p className="text-xl text-gray-600">
                                         Total: <span className="text-2xl font-bold text-emerald-600">${formatDinero(selectedCuenta.total)}</span>
@@ -322,7 +322,7 @@ const Historial = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                         <div><strong>Cliente:</strong> {selectedCuenta.cliente}</div>
                                         <div><strong>Tipo:</strong> {selectedCuenta.tipo_cuenta === 'mesa' ? '🪑 Mesa' : '👤 Individual'}</div>
-                                        {selectedCuenta.mesa_id && <div><strong>Mesa:</strong> {selectedCuenta.numero_mesa}</div>}
+                                        {/* {selectedCuenta.mesa_id && <div><strong>Mesa:</strong> {selectedCuenta.numero_mesa}</div>} */}
                                         <div><strong>Estado:</strong> 
                                             <span className={`ml-2 px-3 py-1 rounded-full text-xs font-bold ${
                                                 selectedCuenta.estado === 'pagado' 

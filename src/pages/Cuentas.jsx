@@ -851,241 +851,177 @@ const Cuentas = () => {
     };
 
 
+    // Cuentas.jsx — fragmento return (reemplaza desde el loading hasta el final)
+// El resto del componente (estados, handlers, etc.) permanece igual.
+
     if (loading && cuentas.length === 0) {
         return (
-        <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 sm:py-20">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-blue-200/50 border-t-blue-600 rounded-full animate-spin mb-6" />
-            <p className="text-lg sm:text-xl font-medium text-gray-700 text-center">Cargando cuentas...</p>
-        </div>
+            <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: 'linear-gradient(135deg, #f8f8f6 0%, #eeeee8 40%, #e8ede8 100%)' }}>
+                <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-800 rounded-full animate-spin mb-4" />
+                <p className="text-sm" style={{ color: '#888' }}>Cargando ventas...</p>
+            </div>
         );
     }
 
     return (
-        <>      
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white py-6 px-4 sm:py-8 sm:px-6 lg:py-12">
-            <div className="max-w-7xl mx-auto">
-                {/* HEADER CON BOTÓN CORTE DE CAJA */}
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 lg:mb-12 gap-4">
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">💰 Cuentas</h1>
-                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        {/* BOTÓN NUEVA CUENTA (sin cambios) */}
-                        <button
-                            onClick={() => setShowCreateModal(true)}
-                            className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base"
-                        >
-                            ➕ Nueva Cuenta
-                        </button>
-                        
-                        {/* ✅ BOTÓN CORTE DE CAJA NUEVO */}
-                        <button
-                            onClick={() => setShowCorteModal(true)}
-                            className="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base"
-                            title="Solo 1 corte por turno (18:00-06:00)"
-                        >
-                            🖨️ Corte de Caja
-                        </button>
+        <>
+        <div className="min-h-screen py-8 px-4 lg:px-8 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #f8f8f6 0%, #eeeee8 40%, #e8ede8 100%)' }}>
+
+            {/* Círculos decorativos */}
+            <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full pointer-events-none" style={{ background: 'rgba(163,181,163,0.12)' }} />
+            <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full pointer-events-none" style={{ background: 'rgba(163,181,163,0.08)' }} />
+
+            <div className="max-w-7xl mx-auto relative z-10">
+
+                {/* HEADER */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+                    <div>
+                        <h1 className="text-3xl font-medium mb-1" style={{ color: '#111' }}>Ventas</h1>
+                        <p className="text-sm" style={{ color: '#888' }}>Gestión de cuentas y abonos</p>
                     </div>
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                        style={{ background: '#222', color: '#fff', border: 'none' }}
+                    >
+                        + Nueva Venta
+                    </button>
                 </div>
 
-                {/* 👇 BUSCADOR + PESTAÑAS */}
-                <div className="mb-8 flex flex-col gap-6">
-                  {/* PESTAÑAS CONTADO / CRÉDITO */}
-                    <div className="flex bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                {/* PESTAÑAS + BUSCADOR */}
+                <div className="mb-6 flex flex-col gap-4">
+                    {/* Pestañas */}
+                    <div className="flex rounded-lg overflow-hidden" style={{ background: '#fff', border: '0.5px solid #e0e0da' }}>
                         <button
                             onClick={() => handleCambiarPestaña('contado')}
-                            className={`flex-1 py-3 px-4 font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
-                                pestañaActiva === 'contado'
-                                ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg'
-                                : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-700'
-                            }`}
-                            >
-                            💵 Al Contado
-                            <span className="text-xs bg-white/30 px-2 py-1 rounded-full">
+                            className="flex-1 py-2.5 px-4 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                            style={pestañaActiva === 'contado'
+                                ? { background: '#222', color: '#fff' }
+                                : { background: 'transparent', color: '#666' }
+                            }
+                        >
+                            Al Contado
+                            <span className="text-xs px-2 py-0.5 rounded-full" style={pestañaActiva === 'contado' ? { background: 'rgba(255,255,255,0.2)', color: '#fff' } : { background: '#f0f0ea', color: '#888' }}>
                                 {totalesCuentas.contado}
                             </span>
                         </button>
                         <button
                             onClick={() => handleCambiarPestaña('credito')}
-                            className={`flex-1 py-3 px-4 font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
-                                pestañaActiva === 'credito'
-                                ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg'
-                                : 'text-gray-700 hover:bg-purple-50 hover:text-purple-700'
-                            }`}
-                            >
-                            💳 Al Crédito
-                            <span className="text-xs bg-white/30 px-2 py-1 rounded-full">
+                            className="flex-1 py-2.5 px-4 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                            style={pestañaActiva === 'credito'
+                                ? { background: '#222', color: '#fff' }
+                                : { background: 'transparent', color: '#666' }
+                            }
+                        >
+                            Al Crédito
+                            <span className="text-xs px-2 py-0.5 rounded-full" style={pestañaActiva === 'credito' ? { background: 'rgba(255,255,255,0.2)', color: '#fff' } : { background: '#f0f0ea', color: '#888' }}>
                                 {totalesCuentas.credito}
                             </span>
                         </button>
                     </div>
 
-                    {/* BUSCADOR - IGUAL QUE ANTES */}
-                    <div className="relative w-full max-w-lg mx-auto">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {/* Buscador */}
+                    <div className="relative max-w-md">
+                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#bbb' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        </div>
                         <input
-                        type="search"
-                        placeholder="Buscar cliente o número de cuenta..."
-                        value={searchCuentaInput}
-                        onChange={(e) => setSearchCuentaInput(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                            setSearchCuenta(searchCuentaInput);
-                            setPage(1);
-                            e.target.blur();
-                            }
-                        }}
-                        className="w-full pl-12 pr-10 py-3 bg-white border border-gray-200 rounded-2xl shadow-sm text-gray-800 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:shadow-md"
+                            type="search"
+                            placeholder="Buscar cliente o número..."
+                            value={searchCuentaInput}
+                            onChange={(e) => setSearchCuentaInput(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') { setSearchCuenta(searchCuentaInput); setPage(1); e.target.blur(); } }}
+                            className="w-full pl-9 pr-8 py-2.5 text-sm rounded-lg outline-none transition-all duration-200"
+                            style={{ background: '#fff', border: '0.5px solid #e0e0da', color: '#222' }}
                         />
                         {searchCuentaInput && (
-                        <button
-                            onClick={() => {
-                            setSearchCuentaInput('');
-                            setSearchCuenta('');
-                            setPage(1);
-                            }}
-                            className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
+                            <button onClick={() => { setSearchCuentaInput(''); setSearchCuenta(''); setPage(1); }} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: '#bbb' }}>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
                         )}
                     </div>
                 </div>
 
-                 {/* PAGINACIÓN CUENTAS */}
+                {/* PAGINACIÓN SUPERIOR */}
                 {pagination.totalPages > 1 && (
-                    <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-md lg:shadow-lg mb-8 lg:mb-12 flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-4">
-                    <button 
-                        className="w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md lg:shadow-lg text-xs lg:text-sm flex-shrink-0"
-                        onClick={() => setPage(Math.max(1, page - 1))}
-                        disabled={page <= 1}
-                    >
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-
-                    <div className="hidden sm:flex gap-1 lg:gap-2 justify-center min-w-[120px] lg:min-w-[160px]">
+                    <div className="flex items-center gap-2 mb-6">
+                        <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all disabled:opacity-40"
+                            style={{ background: '#fff', border: '0.5px solid #e0e0da', color: '#555' }}>‹</button>
                         {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                        const startPage = Math.max(1, page - 2);
-                        const pageNum = Math.min(startPage + i, pagination.totalPages);
-                        return (
-                            <button
-                            key={pageNum}
-                            className={`w-10 h-10 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 hover:scale-105 shadow-sm lg:shadow-md flex items-center justify-center text-sm lg:text-base flex-shrink-0 ${
-                                pageNum === page 
-                                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25' 
-                                : 'bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-700 border border-gray-200 hover:border-blue-200'
-                            }`}
-                            onClick={() => setPage(pageNum)}
-                            >
-                            {pageNum}
-                            </button>
-                        );
+                            const pageNum = Math.min(Math.max(1, page - 2) + i, pagination.totalPages);
+                            return (
+                                <button key={pageNum} onClick={() => setPage(pageNum)}
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-all"
+                                    style={pageNum === page ? { background: '#222', color: '#fff' } : { background: '#fff', border: '0.5px solid #e0e0da', color: '#555' }}>
+                                    {pageNum}
+                                </button>
+                            );
                         })}
-                    </div>
-
-                    <button 
-                        className="w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md lg:shadow-lg text-xs lg:text-sm flex-shrink-0"
-                        onClick={() => setPage(Math.min(pagination.totalPages, page + 1))}
-                        disabled={page >= pagination.totalPages}
-                    >
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-
-                    <div className="hidden sm:block text-gray-700 font-semibold bg-gray-100 px-4 py-2 lg:px-6 lg:py-3 rounded-xl lg:rounded-2xl border border-gray-200 text-sm lg:text-base whitespace-nowrap flex-shrink-0">
-                        Pg. <span className="text-blue-600 font-bold">{page}</span> de <span className="text-purple-600 font-bold">{pagination.totalPages}</span>
-                    </div>
+                        <button onClick={() => setPage(Math.min(pagination.totalPages, page + 1))} disabled={page >= pagination.totalPages}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all disabled:opacity-40"
+                            style={{ background: '#fff', border: '0.5px solid #e0e0da', color: '#555' }}>›</button>
+                        <span className="text-xs ml-2" style={{ color: '#aaa' }}>Pág. {page} de {pagination.totalPages}</span>
                     </div>
                 )}
 
-                {/* GRID CUENTAS - SOLO POSICIONES BOTONES */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {/* GRID CUENTAS */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {cuentas.map(cuenta => {
                         const esContado = cuenta.tipo_pago == 'contado';
-                        console.log(esContado);
-                        
                         return (
-                            <div key={cuenta.id} className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl border border-gray-100 hover:border-gray-200 transition-all duration-300 hover:-translate-y-1">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-xl font-bold text-gray-900 line-clamp-1">Cuenta #{cuenta.id}</h3>
-                                    <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                                        cuenta.estado === 'pagado' 
-                                            ? 'bg-emerald-100 text-emerald-800' 
-                                            : 'bg-amber-100 text-amber-800'
-                                    }`}>
-                                        {cuenta.estado === 'pagado' ? '✅ Pagada' : '⏳ Pendiente'}
+                            <div key={cuenta.id} className="rounded-2xl p-5 transition-all duration-200" style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 2px 16px rgba(0,0,0,0.05)' }}>
+                                
+                                {/* Cabecera */}
+                                <div className="flex items-center justify-between mb-4">
+                                    <p className="text-sm font-medium" style={{ color: '#111' }}>Venta #{cuenta.id}</p>
+                                    <span className="text-xs px-2 py-1 rounded-md font-medium"
+                                        style={cuenta.estado === 'pagado'
+                                            ? { background: '#f4faf4', color: '#2a7a2a', border: '0.5px solid #c8e6c8' }
+                                            : { background: '#fdfaf4', color: '#7a6a2a', border: '0.5px solid #e6d8a0' }
+                                        }>
+                                        {cuenta.estado === 'pagado' ? 'Pagada' : 'Pendiente'}
                                     </span>
                                 </div>
-                                
-                                <div className="grid grid-cols-1 gap-4 mb-6">
-                                    <div className="flex items-center">
-                                        <span className="text-lg text-gray-600 font-medium min-w-[80px]">Cliente:</span>
-                                        <span className="text-lg font-bold text-gray-600 ms-2">{cuenta.cliente.toUpperCase()}</span>
-                                    </div>
+
+                                {/* Info */}
+                                <div className="space-y-2 mb-4">
+                                    <p className="text-sm font-medium truncate" style={{ color: '#333' }}>{cuenta.cliente.toUpperCase()}</p>
                                     {cuenta.mesa_id && (
-                                        <div className="flex items-center">
-                                            <span className="text-lg text-gray-600 font-medium min-w-[80px]">🪑 Mesa:</span>
-                                            <span className="text-lg font-bold text-gray-600 ms-2">{cuenta.numero_mesa}</span>
-                                        </div>
+                                        <p className="text-xs" style={{ color: '#aaa' }}>Mesa {cuenta.numero_mesa}</p>
                                     )}
-                                    <div className={`flex items-center p-2 rounded-xl ${
-                                        esContado 
-                                            ? 'bg-emerald-50 border border-emerald-200' 
-                                            : 'bg-purple-50 border border-purple-200'
-                                    }`}>
-                                        <span className="text-lg font-bold min-w-[70px]">
-                                            {esContado ? '💰 Contado' : '📜 Crédito'}
-                                        </span>
-                                    </div>
+                                    <span className="inline-block text-xs px-2 py-1 rounded-md"
+                                        style={esContado
+                                            ? { background: '#f4faf4', color: '#2a7a2a', border: '0.5px solid #c8e6c8' }
+                                            : { background: '#f4f0fa', color: '#5a2a7a', border: '0.5px solid #d8c8e6' }
+                                        }>
+                                        {esContado ? 'Contado' : 'Crédito'}
+                                    </span>
                                 </div>
 
-                                <div className="text-2xl lg:text-3xl font-bold text-emerald-600 mb-6 bg-gradient-to-r from-emerald-50 to-green-50 p-4 rounded-xl">
-                                    ${formatDinero(cuenta.total_pendiente)}
-                                </div>
+                                {/* Total */}
+                                <p className="text-2xl font-medium mb-5" style={{ color: '#111' }}>${formatDinero(cuenta.total_pendiente)}</p>
 
-                                {/* ✅ FILA 1: ABONO SOLO */}
+                                {/* Botón abono */}
                                 {cuenta.estado === 'pendiente' && (
-                                    <div className="flex gap-3 mb-4">
-                                        <button
-                                            onClick={() => handlePagarCuenta(cuenta.id)}
-                                            disabled={updating === cuenta.id}
-                                            className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                        >
-                                            💰 Abono
-                                        </button>
-                                    </div>
+                                    <button onClick={() => handlePagarCuenta(cuenta.id)} disabled={updating === cuenta.id}
+                                        className="w-full py-2 rounded-lg text-sm font-medium mb-3 transition-all duration-200 disabled:opacity-40"
+                                        style={{ background: '#222', color: '#fff', border: 'none' }}>
+                                        Abono
+                                    </button>
                                 )}
 
-                                {/* ✅ FILA 2: Crédito/Contado (izq) + Detalle (der) */}
-                                <div className="flex gap-3 pt-2">
-                                    {/* IZQUIERDA: Crédito/Contado - TU LÓGICA ORIGINAL */}
-                                    <button
-                                        onClick={() => handleCambiarTipoPago(cuenta.id, esContado ? 'credito' : 'contado')}
-                                        disabled={updating === cuenta.id}
-                                        className={`flex-1 font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm flex items-center justify-center gap-2 ${
-                                            esContado
-                                                ? 'bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white border-rose-400'
-                                                : 'bg-gradient-to-r from-sky-500 to-cyan-600 hover:from-sky-600 hover:to-cyan-700 text-white border-sky-400'
-                                        } disabled:opacity-50 disabled:cursor-not-allowed`}
-                                    >
-                                        <span>{esContado ? '📜 Crédito' : '💰 Contado'}</span>
+                                {/* Botones secundarios */}
+                                <div className="flex gap-2">
+                                    <button onClick={() => handleCambiarTipoPago(cuenta.id, esContado ? 'credito' : 'contado')} disabled={updating === cuenta.id}
+                                        className="flex-1 py-2 rounded-lg text-xs font-medium transition-all duration-200 disabled:opacity-40"
+                                        style={{ background: '#f5f5f0', color: '#555', border: '0.5px solid #e0e0da' }}>
+                                        {esContado ? 'Mover a Crédito' : 'Mover a Contado'}
                                     </button>
-
-                                    {/* DERECHA: Detalle */}
-                                    <button 
-                                        onClick={() => handleVerDetalle(cuenta.id)}
-                                        disabled={loadingDetail === cuenta.id}
-                                        className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm disabled:opacity-50 flex items-center justify-center gap-2"
-                                    >
-                                        👁️ Detalle
+                                    <button onClick={() => handleVerDetalle(cuenta.id)} disabled={loadingDetail === cuenta.id}
+                                        className="flex-1 py-2 rounded-lg text-xs font-medium transition-all duration-200 disabled:opacity-40"
+                                        style={{ background: '#f5f5f0', color: '#555', border: '0.5px solid #e0e0da' }}>
+                                        Detalle
                                     </button>
                                 </div>
                             </div>
@@ -1093,732 +1029,334 @@ const Cuentas = () => {
                     })}
                 </div>
 
-                {/* PAGINACIÓN CUENTAS */}
+                {/* PAGINACIÓN INFERIOR */}
                 {pagination.totalPages > 1 && (
-                    <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-md lg:shadow-lg mb-8 lg:mb-12 flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-4">
-                    <button 
-                        className="w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md lg:shadow-lg text-xs lg:text-sm flex-shrink-0"
-                        onClick={() => setPage(Math.max(1, page - 1))}
-                        disabled={page <= 1}
-                    >
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-
-                    <div className="hidden sm:flex gap-1 lg:gap-2 justify-center min-w-[120px] lg:min-w-[160px]">
+                    <div className="flex items-center gap-2 mt-6">
+                        <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all disabled:opacity-40"
+                            style={{ background: '#fff', border: '0.5px solid #e0e0da', color: '#555' }}>‹</button>
                         {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                        const startPage = Math.max(1, page - 2);
-                        const pageNum = Math.min(startPage + i, pagination.totalPages);
-                        return (
-                            <button
-                            key={pageNum}
-                            className={`w-10 h-10 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 hover:scale-105 shadow-sm lg:shadow-md flex items-center justify-center text-sm lg:text-base flex-shrink-0 ${
-                                pageNum === page 
-                                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25' 
-                                : 'bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-700 border border-gray-200 hover:border-blue-200'
-                            }`}
-                            onClick={() => setPage(pageNum)}
-                            >
-                            {pageNum}
-                            </button>
-                        );
+                            const pageNum = Math.min(Math.max(1, page - 2) + i, pagination.totalPages);
+                            return (
+                                <button key={pageNum} onClick={() => setPage(pageNum)}
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-all"
+                                    style={pageNum === page ? { background: '#222', color: '#fff' } : { background: '#fff', border: '0.5px solid #e0e0da', color: '#555' }}>
+                                    {pageNum}
+                                </button>
+                            );
                         })}
-                    </div>
-
-                    <button 
-                        className="w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md lg:shadow-lg text-xs lg:text-sm flex-shrink-0"
-                        onClick={() => setPage(Math.min(pagination.totalPages, page + 1))}
-                        disabled={page >= pagination.totalPages}
-                    >
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-
-                    <div className="hidden sm:block text-gray-700 font-semibold bg-gray-100 px-4 py-2 lg:px-6 lg:py-3 rounded-xl lg:rounded-2xl border border-gray-200 text-sm lg:text-base whitespace-nowrap flex-shrink-0">
-                        Pg. <span className="text-blue-600 font-bold">{page}</span> de <span className="text-purple-600 font-bold">{pagination.totalPages}</span>
-                    </div>
+                        <button onClick={() => setPage(Math.min(pagination.totalPages, page + 1))} disabled={page >= pagination.totalPages}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all disabled:opacity-40"
+                            style={{ background: '#fff', border: '0.5px solid #e0e0da', color: '#555' }}>›</button>
                     </div>
                 )}
 
+                {/* VACÍO */}
                 {cuentas.length === 0 && !loading && (
                     <div className="text-center py-20">
-                    <div className="text-6xl mb-4">💸</div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">No hay cuentas</h2>
-                    <p className="text-gray-600 mb-6">Crea la primera cuenta para empezar</p>
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-3 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300"
-                    >
-                        ➕ Nueva Cuenta
-                    </button>
+                        <p className="text-sm mb-4" style={{ color: '#aaa' }}>No hay ventas registradas</p>
+                        <button onClick={() => setShowCreateModal(true)}
+                            className="px-5 py-2.5 rounded-lg text-sm font-medium"
+                            style={{ background: '#222', color: '#fff' }}>
+                            + Nueva Venta
+                        </button>
                     </div>
                 )}
             </div>
         </div>
 
-        {/* 🆕 MODAL DE ABONOS - VERTICAL, FORMA DE PAGO ARRIBA, REFERENCIA ABAJO */}
+        {/* ── MODAL ABONOS ─────────────────────────────────────────── */}
         {showAbonosModal && selectedCuenta?.cliente && (
-        <>
-            <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] animate-in fade-in-0 zoom-in-95 duration-200"
-            onClick={handleCerrarAbonosModal}
-            />
-            <div className="fixed inset-0 z-[80] p-4 sm:p-6 flex items-center justify-center max-h-[95vh] overflow-y-auto">
-            <div className="w-full max-w-2xl max-h-[95vh] bg-white rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-200 flex flex-col">
-                {/* HEADER */}
-                <div className="p-6 bg-gradient-to-r from-emerald-500 to-green-600 text-white border-b border-emerald-600/50">
-                <div className="flex justify-between items-center mb-4">
-                    <div>
-                    <h2 className="text-2xl font-bold">💰 Realizar Abono</h2>
-                    <p className="text-emerald-100">
-                        Cuenta #{selectedCuenta.id} - {selectedCuenta.cliente?.toUpperCase() || 'CLIENTE'}
-                    </p>
-                    </div>
-                    <button
-                    onClick={handleCerrarAbonosModal}
-                    className="p-2 rounded-2xl hover:bg-white/20 transition-all"
-                    >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                        />
-                    </svg>
-                    </button>
-                </div>
-
-                {/* SALDO ACTUAL */}
-                <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4">
-                    <div className="flex justify-between items-baseline mb-2">
-                    <span className="text-sm opacity-90">Saldo pendiente:</span>
-                    <span
-                        className={`text-sm font-bold px-3 py-1 rounded-full ${
-                        selectedCuenta.estado === 'pagado'
-                            ? 'bg-emerald-200 text-emerald-800'
-                            : 'bg-amber-200 text-amber-800'
-                        }`}
-                    >
-                        {selectedCuenta.estado === 'pagado' ? 'PAGADA' : 'PENDIENTE'}
-                    </span>
-                    </div>
-                    <p className="text-3xl font-bold">
-                    ${formatDinero(selectedCuenta.total_pendiente || selectedCuenta.total)}
-                    </p>
-                    <p className="text-sm opacity-75 mt-1">
-                    Total pagado: ${formatDinero(selectedCuenta.total_pagado || 0)}
-                    </p>
-                </div>
-                </div>
-
-                {/* FORMULARIO – VERTICAL */}
-                <div className="p-6 flex-1 overflow-y-auto">
-                <form onSubmit={handleProcesarAbono} className="space-y-6">
-                    {/* 1. FORMAS DE PAGO – ARRIBA Y SIN SCROLL */}
-                    <div className="grid grid-cols-2 gap-4">
-                    {formasPago.map((forma) => (
-                        <button
-                        key={forma.id}
-                        type="button"
-                        onClick={() => handleFormaPagoChange(forma.id)}
-                        className={`group relative p-3 rounded-2xl font-semibold text-sm transition-all duration-200 border-2 shadow-md hover:shadow-xl flex flex-col items-center justify-center gap-2 text-center ${
-                            abonosForm.forma_pago_id == forma.id
-                            ? 'bg-gradient-to-br from-emerald-500 to-green-600 text-white border-emerald-500 shadow-emerald-500/30 scale-105'
-                            : 'bg-gradient-to-br from-gray-50 to-white text-gray-700 border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 hover:scale-105'
-                        }`}
-                        disabled={mostrarVuelto}
-                        >
-                        {/* Check */}
-                        {abonosForm.forma_pago_id == forma.id && (
-                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center shadow-md">
-                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                                />
-                            </svg>
-                            </div>
-                        )}
-
-                        {/* Icono */}
-                        <div className="w-10 h-10 rounded-lg bg-white/40 backdrop-blur-sm flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
-                            {forma.codigo === 'EFECTIVO' && '💵'}
-                            {forma.codigo === 'TRANSFERENCIA' && '🏦'}
-                            {forma.codigo === 'CHEQUE' && '📄'}
-                            {forma.codigo === 'TARJETA DE CREDITO' && '💳'}
-                            {forma.codigo === 'TARJETA DE DEBITO' && '🪪'}
-                        </div>
-
-                        {/* Código + nombre */}
-                        <div className="text-center">
-                            <div className="font-bold text-sm truncate">{forma.codigo}</div>
-                            {forma.nombre && (
-                            <div className="text-xs opacity-90 leading-4 mt-0.5 truncate">
-                                {forma.nombre}
-                            </div>
-                            )}
-                        </div>
-                        </button>
-                    ))}
-                    </div>
-
-                    {/* 2. MONTO DEL ABONO */}
-                    <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                        💵 Monto del abono *
-                    </label>
-                    <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-600 font-bold text-xl">
-                        $
-                        </span>
-                        <input
-                        type="number"
-                        step="0.01"
-                        min="0.01"
-                        value={abonosForm.total_abonado}
-                        onChange={(e) =>
-                            setAbonosForm({ ...abonosForm, total_abonado: e.target.value })
-                        }
-                        placeholder="0.00"
-                        className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/30 focus:border-emerald-500 text-xl font-bold text-gray-900 text-right bg-gradient-to-r from-gray-50 to-white shadow-md transition-all"
-                        disabled={mostrarVuelto}
-                        />
-                    </div>
-                    </div>
-
-                    {/* 3. REFERENCIA – ABAJO DEL MONTO, PERO EN VERTICAL */}
-                    <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        🧾 Referencia
-                    </label>
-                    <div className="relative">
-                        <input
-                        type="text"
-                        value={abonosForm.referencia || 'EFECTIVO'}
-                        readOnly
-                        className="w-full px-4 py-3 pr-12 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-300 rounded-xl text-gray-700 font-semibold text-sm cursor-not-allowed shadow-sm"
-                        disabled={mostrarVuelto}
-                        />
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-semibold">
-                            AUTO
-                        </span>
-                        </div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">Se genera según forma de pago</p>
-                    </div>
-
-                    {/* 4. MENSAJE RESULTADO */}
-                    {mensajeResultado && (
-                    <div
-                        className={`p-4 rounded-2xl text-sm font-semibold ${
-                        mostrarVuelto
-                            ? 'bg-emerald-100 border-2 border-emerald-400 text-emerald-800'
-                            : pagoParcial
-                            ? 'bg-amber-100 border-2 border-amber-400 text-amber-800 animate-pulse'
-                            : ''
-                        }`}
-                    >
-                        {mensajeResultado}
-                    </div>
-                    )}
-
-                    {/* 5. NOTA */}
-                    <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                        📝 Nota (opcional)
-                    </label>
-                    <textarea
-                        rows="3"
-                        value={abonosForm.nota}
-                        onChange={(e) => setAbonosForm({ ...abonosForm, nota: e.target.value })}
-                        placeholder="Pago parcial, propina, adelanto, etc..."
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/30 focus:border-emerald-500 resize-vertical text-base"
-                        disabled={mostrarVuelto}
-                    />
-                    </div>
-
-                    {/* 6. BOTONES – IGUAL QUE ANTES */}
-                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                    <button
-                        type="button"
-                        onClick={handleCerrarAbonosModal}
-                        disabled={abonosLoading || mostrarVuelto}
-                        className="flex-1 bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-bold py-4 px-8 rounded-2xl hover:shadow-xl transition-all duration-300 disabled:opacity-50 text-base shadow-md"
-                    >
-                        Cancelar
-                    </button>
-                    {!mostrarVuelto && (
-                        <button
-                        type="submit"
-                        disabled={!abonosForm.total_abonado || parseFloat(abonosForm.total_abonado) <= 0 || abonosLoading}
-                        className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-base"
-                        >
-                        {abonosLoading ? (
-                            <>
-                            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                                />
-                                <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                />
-                            </svg>
-                            Procesando...
-                            </>
-                        ) : (
-                            '💳 Registrar Abono'
-                        )}
-                        </button>
-                    )}
-                    </div>
-                </form>
-                </div>
-            </div>
-            </div>
-        </>
-        )}
-
-        {/* MODAL NUEVA CUENTA */}
-        {showCreateModal && (
             <>
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] animate-in fade-in-0 zoom-in-95 duration-200" onClick={handleCerrarModal} />
-            <div className="fixed inset-0 z-[60] p-4 sm:p-6 flex items-center justify-center">
-                <div className="w-full max-w-6xl max-h-[95vh] flex flex-col bg-white rounded-3xl sm:rounded-[2rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-200">
-                    
-                    {/* HEADER PEQUEÑO FIJO */}
-                    <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-green-50 flex-shrink-0">
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Nueva Cuenta</h2>
-                                <p className="text-base text-gray-600">
-                                    Total: <span className="text-xl font-bold text-emerald-600">${formatDinero(calcularTotal())}</span>
-                                    {selectedProductos.length > 0 && ` (${selectedProductos.length} productos)`}
-                                </p>
-                            </div>
-                            <button onClick={handleCerrarModal} className="p-2 rounded-2xl hover:bg-gray-200 transition-all">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
+            <div className="fixed inset-0 z-[80]" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={handleCerrarAbonosModal} />
+            <div className="fixed inset-0 z-[80] p-4 flex items-center justify-center">
+                <div className="w-full max-w-lg max-h-[92vh] flex flex-col rounded-2xl overflow-hidden" style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 8px 40px rgba(0,0,0,0.12)' }}>
+
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '0.5px solid #f0f0ea' }}>
+                        <div>
+                            <h2 className="text-base font-medium" style={{ color: '#111' }}>Realizar Abono</h2>
+                            <p className="text-xs" style={{ color: '#aaa' }}>Venta #{selectedCuenta.id} · {selectedCuenta.cliente?.toUpperCase()}</p>
                         </div>
+                        <button onClick={handleCerrarAbonosModal} className="w-8 h-8 rounded-lg flex items-center justify-center transition-all" style={{ background: '#f5f5f0' }}>
+                            <svg className="w-4 h-4" style={{ color: '#666' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
 
-                        {/* FORM CABECERA */}
-                        <form className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
-                            {/* Contenedor Cliente */}
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">👤 Cliente *</label>
-                                <input
-                                    className="w-full p-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                                    value={createForm.cliente}
-                                    onChange={(e) => setCreateForm({ ...createForm, cliente: e.target.value })}
-                                    required
-                                    placeholder="Nombre del cliente"
-                                />
-                            </div>
-                            {/* Contenedor Tipo de Cuenta */}
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                                    Tipo de Cuenta
-                                </label>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleTipoChange({ target: { value: 'individual' } })}
-                                        className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 ${
-                                            createForm.tipo_cuenta === 'individual'
-                                            ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm'
-                                            : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
-                                        }`}
-                                    >
-                                        <span className="text-lg leading-none">👤</span>
-                                        <span className="font-medium">Individual</span>
-                                    </button>
+                    {/* Saldo */}
+                    <div className="px-6 py-4" style={{ background: '#fafafa', borderBottom: '0.5px solid #f0f0ea' }}>
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs" style={{ color: '#aaa' }}>Saldo pendiente</span>
+                            <span className="text-xs px-2 py-0.5 rounded-md"
+                                style={selectedCuenta.estado === 'pagado'
+                                    ? { background: '#f4faf4', color: '#2a7a2a' }
+                                    : { background: '#fdfaf4', color: '#7a6a2a' }}>
+                                {selectedCuenta.estado === 'pagado' ? 'Pagada' : 'Pendiente'}
+                            </span>
+                        </div>
+                        <p className="text-2xl font-medium" style={{ color: '#111' }}>${formatDinero(selectedCuenta.total_pendiente || selectedCuenta.total)}</p>
+                        <p className="text-xs mt-1" style={{ color: '#bbb' }}>Pagado: ${formatDinero(selectedCuenta.total_pagado || 0)}</p>
+                    </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => handleTipoChange({ target: { value: 'mesa' } })}
-                                        className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 ${
-                                            createForm.tipo_cuenta === 'mesa'
-                                            ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm'
-                                            : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
-                                        }`}
-                                    >
-                                        <span className="text-lg leading-none">🪑</span>
-                                        <span className="font-medium">Mesa</span>
-                                    </button>
+                    {/* Formulario */}
+                    <div className="flex-1 overflow-y-auto px-6 py-5">
+                        <form onSubmit={handleProcesarAbono} className="space-y-5">
+
+                            {/* Formas de pago */}
+                            <div>
+                                <label className="block text-xs tracking-widest mb-3" style={{ color: '#999' }}>FORMA DE PAGO</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {formasPago.map((forma) => (
+                                        <button key={forma.id} type="button" onClick={() => handleFormaPagoChange(forma.id)} disabled={mostrarVuelto}
+                                            className="p-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                                            style={abonosForm.forma_pago_id == forma.id
+                                                ? { background: '#222', color: '#fff', border: '0.5px solid #222' }
+                                                : { background: '#f5f5f0', color: '#555', border: '0.5px solid #e0e0da' }
+                                            }>
+                                            <span className="text-base">
+                                                {forma.codigo === 'EFECTIVO' && '💵'}
+                                                {forma.codigo === 'TRANSFERENCIA' && '🏦'}
+                                                {forma.codigo === 'CHEQUE' && '📄'}
+                                                {forma.codigo === 'TARJETA DE CREDITO' && '💳'}
+                                                {forma.codigo === 'TARJETA DE DEBITO' && '🪪'}
+                                            </span>
+                                            <span className="truncate text-xs">{forma.codigo}</span>
+                                        </button>
+                                    ))}
                                 </div>
+                            </div>
+
+                            {/* Monto */}
+                            <div>
+                                <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>MONTO</label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium" style={{ color: '#aaa' }}>$</span>
+                                    <input type="number" step="0.01" min="0.01" value={abonosForm.total_abonado}
+                                        onChange={(e) => setAbonosForm({ ...abonosForm, total_abonado: e.target.value })}
+                                        placeholder="0.00" disabled={mostrarVuelto}
+                                        className="w-full pl-7 pr-4 py-3 rounded-xl text-lg font-medium outline-none transition-all"
+                                        style={{ background: '#fafafa', border: '0.5px solid #e0e0da', color: '#111' }} />
+                                </div>
+                            </div>
+
+                            {/* Referencia */}
+                            <div>
+                                <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>REFERENCIA</label>
+                                <div className="relative">
+                                    <input type="text" value={abonosForm.referencia || 'EFECTIVO'} readOnly disabled={mostrarVuelto}
+                                        className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                                        style={{ background: '#f5f5f0', border: '0.5px solid #e8e8e2', color: '#888' }} />
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#bbb' }}>AUTO</span>
+                                </div>
+                            </div>
+
+                            {/* Mensaje resultado */}
+                            {mensajeResultado && (
+                                <div className="px-4 py-3 rounded-xl text-sm font-medium"
+                                    style={mostrarVuelto
+                                        ? { background: '#f4faf4', border: '0.5px solid #c8e6c8', color: '#2a7a2a' }
+                                        : { background: '#fdfaf4', border: '0.5px solid #e6d8a0', color: '#7a6a2a' }}>
+                                    {mensajeResultado}
+                                </div>
+                            )}
+
+                            {/* Nota */}
+                            <div>
+                                <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>NOTA (OPCIONAL)</label>
+                                <textarea rows="2" value={abonosForm.nota} onChange={(e) => setAbonosForm({ ...abonosForm, nota: e.target.value })}
+                                    placeholder="Pago parcial, propina, adelanto..." disabled={mostrarVuelto}
+                                    className="w-full px-4 py-2.5 rounded-xl text-sm outline-none resize-none"
+                                    style={{ background: '#fafafa', border: '0.5px solid #e0e0da', color: '#333' }} />
+                            </div>
+
+                            {/* Botones */}
+                            <div className="flex gap-3 pt-2">
+                                <button type="button" onClick={handleCerrarAbonosModal} disabled={abonosLoading || mostrarVuelto}
+                                    className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all disabled:opacity-40"
+                                    style={{ background: '#f5f5f0', color: '#555', border: '0.5px solid #e0e0da' }}>
+                                    Cancelar
+                                </button>
+                                {!mostrarVuelto && (
+                                    <button type="submit" disabled={!abonosForm.total_abonado || parseFloat(abonosForm.total_abonado) <= 0 || abonosLoading}
+                                        className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+                                        style={{ background: '#222', color: '#fff', border: 'none' }}>
+                                        {abonosLoading ? (
+                                            <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Procesando...</>
+                                        ) : 'Registrar Abono'}
+                                    </button>
+                                )}
                             </div>
                         </form>
                     </div>
+                </div>
+            </div>
+            </>
+        )}
 
-                    {/* CONTENIDO SCROLLABLE */}
+        {/* ── MODAL NUEVA CUENTA ───────────────────────────────────── */}
+        {showCreateModal && (
+            <>
+            <div className="fixed inset-0 z-[60]" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={handleCerrarModal} />
+            <div className="fixed inset-0 z-[60] p-4 flex items-center justify-center">
+                <div className="w-full max-w-6xl max-h-[95vh] flex flex-col rounded-2xl overflow-hidden" style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 8px 40px rgba(0,0,0,0.12)' }}>
+
+                    {/* Header fijo */}
+                    <div className="px-6 py-4 flex-shrink-0" style={{ borderBottom: '0.5px solid #f0f0ea' }}>
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h2 className="text-base font-medium" style={{ color: '#111' }}>Nueva Venta</h2>
+                                <p className="text-xs" style={{ color: '#aaa' }}>
+                                    Total: <span className="font-medium" style={{ color: '#111' }}>${formatDinero(calcularTotal())}</span>
+                                    {selectedProductos.length > 0 && ` · ${selectedProductos.length} productos`}
+                                </p>
+                            </div>
+                            <button onClick={handleCerrarModal} className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#f5f5f0' }}>
+                                <svg className="w-4 h-4" style={{ color: '#666' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                        <div>
+                            <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>CLIENTE</label>
+                            <input className="w-full max-w-sm px-4 py-2.5 rounded-lg text-sm outline-none"
+                                style={{ background: '#fafafa', border: '0.5px solid #e0e0da', color: '#222' }}
+                                value={createForm.cliente}
+                                onChange={(e) => setCreateForm({ ...createForm, cliente: e.target.value })}
+                                required placeholder="Nombre del cliente" />
+                        </div>
+                    </div>
+
+                    {/* Contenido scrollable */}
                     <div className="flex-1 overflow-y-auto min-h-0">
-                        
-                        {/* MESAS */}
-                        {createForm.tipo_cuenta === 'mesa' && (
-                            <div className="p-6 sm:p-8 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-amber-50">
-                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">🪑 Seleccionar Mesa</h3>
-                                {/* Paginacion mesas */}
-                                { mesasTotalPages > 1 && (
-                                    <div className="flex items-center justify-end gap-2 pb-4 mb-2">
-                                        <button 
-                                            onClick={() => setMesasPage(p => Math.max(1, p - 1))}
-                                            disabled={mesasPage === 1}
-                                            className="w-12 h-12 bg-gradient-to-r from-orange-800 to-orange-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                        >
-                                            ‹
-                                        </button>
-                                        <button 
-                                            onClick={() => setMesasPage(p => Math.min(mesasTotalPages, p + 1))}
-                                            disabled={mesasPage === mesasTotalPages}
-                                            className="w-12 h-12 bg-gradient-to-r from-orange-800 to-orange-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                        >
-                                            ›
-                                        </button>
-                                    </div> 
-                                )}                                     
-                                {/* Grid mesas */}
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-                                    {mesas.map(mesa => (
-                                        <button
-                                            key={mesa.id}
-                                            type="button"
-                                            onClick={() => handleMesaSelect(mesa.id)}
-                                            className={`group p-4 sm:p-5 rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg border-4 h-full flex flex-col items-center justify-center gap-3 ${
-                                                createForm.mesa_id === mesa.id
-                                                    ? 'ring-4 ring-blue-500 bg-blue-50 border-blue-400 shadow-2xl shadow-blue-200/50'
-                                                    : mesa.estado === 'disponible'
-                                                    ? 'bg-emerald-100 border-emerald-400 hover:bg-emerald-200 hover:shadow-xl hover:shadow-emerald-200/50'
-                                                    : 'bg-orange-100 border-orange-400 hover:bg-orange-200 hover:shadow-xl hover:shadow-orange-200/50'
-                                            }`}
-                                        >
-                                            <div className="text-2xl font-bold">Mesa {mesa.numero_mesa}</div>
-                                            <span className={`px-3 py-2 rounded-xl text-xs font-bold ${
-                                                mesa.estado === 'disponible' 
-                                                    ? 'bg-emerald-200 text-emerald-800 shadow-emerald-200/50' 
-                                                    : 'bg-orange-200 text-orange-800 shadow-orange-200/50'
-                                            }`}>
-                                                {mesa.estado === 'disponible' ? '✅ LIBRE' : '🪑 OCUPADA'}
-                                            </span>
-                                        </button>
-                                    ))}
-                                </div>
-                                {/* Paginacion mesas */}
-                                {mesasTotalPages > 1 && (
-                                    <div className="flex items-center justify-end gap-2 pt-4 mb-2">
-                                        <button 
-                                            onClick={() => setMesasPage(p => Math.max(1, p - 1))}
-                                            disabled={mesasPage === 1}
-                                            className="w-12 h-12 bg-gradient-to-r from-orange-800 to-orange-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                        >
-                                            ‹
-                                        </button>
-                                        <button 
-                                            onClick={() => setMesasPage(p => Math.min(mesasTotalPages, p + 1))}
-                                            disabled={mesasPage === mesasTotalPages}
-                                            className="w-12 h-12 bg-gradient-to-r from-orange-800 to-orange-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                        >
-                                            ›
-                                        </button>
-                                    </div>  
-                                )}
-                            </div>
-                        )}
 
-                       {/* LISTA PRODUCTOS DESTACADA - CORREGIDA */}
-                        <div className="p-6 sm:p-8 border-b-4 border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50">
-                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                                {/* TÍTULO */}
-                                <h3 className="text-base sm:text-2xl font-bold flex items-center gap-2 text-emerald-800">
-                                    🛍️ Lista de Productos
-                                    <span className="text-sm sm:text-lg bg-emerald-200 text-emerald-800 px-3 py-1 rounded-full font-semibold">
-                                        {selectedProductos.length} seleccionado{selectedProductos.length !== 1 ? 's' : ''}
-                                    </span>
-                                </h3>
+                        {/* Sección productos */}
+                        <div className="p-6" style={{ borderBottom: '0.5px solid #f0f0ea' }}>
+                            <div className="flex items-center justify-between mb-4">
+                                <p className="text-sm font-medium" style={{ color: '#111' }}>
+                                    Productos
+                                    {selectedProductos.length > 0 && <span className="ml-2 text-xs px-2 py-0.5 rounded-full" style={{ background: '#f0f0ea', color: '#666' }}>{selectedProductos.length} seleccionados</span>}
+                                </p>
                             </div>
 
-                            {/* CONTENEDOR SIMPLE */}
-                            <div className="mb-6 space-y-3">                                
-                                {/* CATEGORÍAS - Scroll horizontal NATURAL */}
-                                <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-                                    {/* N/A */}
-                                    <button onClick={() => {
-                                            setCategoriaSeleccionada('N/A');
-                                            fetchProductos(1);
-                                            setProductosPage(1);
-                                        }}
-                                        className={`flex-none px-3 py-2 rounded-xl font-semibold text-sm whitespace-nowrap ${
-                                            categoriaSeleccionada === 'N/A'
-                                                ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg'
-                                                : 'bg-white hover:bg-emerald-50 text-gray-700 border border-gray-200 hover:shadow-md'
-                                        }`}>
-                                        N/A
+                            {/* Categorías */}
+                            <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
+                                <button onClick={() => { setCategoriaSeleccionada('N/A'); fetchProductos(1); setProductosPage(1); }}
+                                    className="flex-none px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all"
+                                    style={categoriaSeleccionada === 'N/A' ? { background: '#222', color: '#fff' } : { background: '#f5f5f0', color: '#666', border: '0.5px solid #e0e0da' }}>
+                                    Todos
+                                </button>
+                                {categorias.map((cat) => (
+                                    <button key={cat.id} onClick={() => { setCategoriaSeleccionada(cat.codigo); fetchProductos(1, '', cat.codigo); setProductosPage(1); }}
+                                        className="flex-none px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all"
+                                        style={categoriaSeleccionada === cat.codigo ? { background: '#222', color: '#fff' } : { background: '#f5f5f0', color: '#666', border: '0.5px solid #e0e0da' }}>
+                                        {cat.codigo}
                                     </button>
-                                    
-                                    {/* Categorías */}
-                                    {categorias.map((cat) => (
-                                        <button key={cat.id}
-                                                onClick={() => {
-                                                    setCategoriaSeleccionada(cat.codigo);
-                                                    fetchProductos(1, '' ,cat.codigo);
-                                                    setProductosPage(1);
-                                                }}
-                                                className={`flex-none px-3 py-2 rounded-xl font-semibold text-sm whitespace-nowrap flex items-center gap-1 ${
-                                                    categoriaSeleccionada === cat.codigo
-                                                        ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg'
-                                                        : 'bg-white hover:bg-emerald-50 text-gray-700 border border-gray-200 hover:shadow-md'
-                                                }`}>
-                                            {cat.codigo}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                {/* 🔎 BUSCAR PRODUCTO */}
-                                <div className="mb-4">
-                                    <div className="relative">
-
-                                        {/* Icono */}
-                                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                                    d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                            </svg>
-                                        </div>
-
-                                        <input
-                                            type="search"
-                                            placeholder="Buscar producto..."
-                                            value={searchProductoInput}
-                                            onChange={(e) => setSearchProductoInput(e.target.value)}
-                                            onKeyDown={(e) => {
-
-                                                if (e.key === "Enter") {
-                                                    setSearchProducto(searchProductoInput)
-                                                    setProductosPage(1)
-
-                                                    // 📱 cerrar teclado móvil
-                                                    e.target.blur()
-                                                }
-
-                                                // limpiar con ESC (extra UX)
-                                                if (e.key === "Escape") {
-                                                    setSearchProductoInput('')
-                                                    setSearchProducto('')
-                                                }
-
-                                            }}
-                                            className="
-                                                w-full
-                                                pl-10 pr-10
-                                                py-2.5
-                                                bg-white
-                                                border border-gray-200
-                                                rounded-xl
-                                                shadow-sm
-                                                placeholder-gray-400
-                                                transition-all
-                                                focus:outline-none
-                                                focus:border-blue-400
-                                                focus:ring-4
-                                                focus:ring-blue-100
-                                            "
-                                        />
-
-                                        {/* Botón limpiar */}
-                                        {searchProductoInput && (
-                                            <button
-                                                onClick={() => {
-                                                    setSearchProductoInput('')
-                                                    setSearchProducto('')
-                                                    setProductosPage(1)
-                                                }}
-                                                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-                                            >
-                                                ✕
-                                            </button>
-                                        )}
-
-                                    </div>
-                                </div>
-
-                                {/* PAGINACIÓN SUPERIOR */}
-                                {productosPagination.totalPages > 1 && (
-                                    <div className="flex justify-end gap-2">
-                                        <button onClick={() => (
-                                            setProductosPage(Math.max(1, productosPage - 1))
-                                            )} 
-                                                disabled={productosPage === 1}
-                                                className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 flex items-center justify-center">
-                                            ‹
-                                        </button>
-                                        <button onClick={() => setProductosPage(Math.min(productosPagination.totalPages || 1, productosPage + 1))} 
-                                                disabled={productosPage === (productosPagination.totalPages || 1)}
-                                                className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 flex items-center justify-center">
-                                            ›
-                                        </button>
-                                    </div>
-                                )}
-
+                                ))}
                             </div>
 
-                            {/* GRID PRODUCTOS */}
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                            {/* Buscador */}
+                            <div className="relative mb-4 max-w-sm">
+                                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#bbb' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <input type="search" placeholder="Buscar producto..." value={searchProductoInput}
+                                    onChange={(e) => setSearchProductoInput(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') { setSearchProducto(searchProductoInput); setProductosPage(1); e.target.blur(); } if (e.key === 'Escape') { setSearchProductoInput(''); setSearchProducto(''); } }}
+                                    className="w-full pl-9 pr-4 py-2 text-sm rounded-lg outline-none"
+                                    style={{ background: '#fafafa', border: '0.5px solid #e0e0da', color: '#222' }} />
+                                {searchProductoInput && (
+                                    <button onClick={() => { setSearchProductoInput(''); setSearchProducto(''); setProductosPage(1); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#bbb' }}>✕</button>
+                                )}
+                            </div>
+
+                            {/* Paginación superior */}
+                            {productosPagination.totalPages > 1 && (
+                                <div className="flex gap-2 mb-4">
+                                    <button onClick={() => setProductosPage(Math.max(1, productosPage - 1))} disabled={productosPage === 1}
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-40"
+                                        style={{ background: '#f5f5f0', border: '0.5px solid #e0e0da', color: '#555' }}>‹</button>
+                                    <button onClick={() => setProductosPage(Math.min(productosPagination.totalPages, productosPage + 1))} disabled={productosPage === productosPagination.totalPages}
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-40"
+                                        style={{ background: '#f5f5f0', border: '0.5px solid #e0e0da', color: '#555' }}>›</button>
+                                </div>
+                            )}
+
+                            {/* Grid productos */}
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                                 {productos.map(producto => {
-                                    const cantidadSeleccionada = selectedProductos.filter(p => p.id === producto.id)
-                                        .reduce((total, p) => total + (p.cantidad || 1), 0);
-                                    
+                                    const cantidadSeleccionada = selectedProductos.filter(p => p.id === producto.id).reduce((t, p) => t + (p.cantidad || 1), 0);
                                     return (
-                                        <button
-                                            key={producto.id}
-                                            onClick={() => handleAgregarProducto(producto)}
-                                            disabled={producto.cantidad_disponible === 0}
-                                            className="group p-4 sm:p-5 border-3 border-emerald-300 rounded-2xl hover:border-emerald-500 hover:shadow-2xl hover:shadow-emerald-300/50 transition-all duration-300 hover:scale-105 bg-gradient-to-br from-white to-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed h-full flex flex-col items-start gap-2 shadow-lg hover:shadow-xl relative overflow-hidden"
-                                        >
+                                        <button key={producto.id} onClick={() => handleAgregarProducto(producto)} disabled={producto.cantidad_disponible === 0}
+                                            className="p-3 rounded-xl text-left transition-all duration-200 disabled:opacity-40 relative"
+                                            style={cantidadSeleccionada > 0
+                                                ? { background: '#222', border: '0.5px solid #222' }
+                                                : { background: '#fff', border: '0.5px solid #e0e0da' }}>
                                             {cantidadSeleccionada > 0 && (
-                                                <div className="absolute top-2 right-2 flex items-center gap-1 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">
-                                                    <span className="text-sm">✓</span>
-                                                    <span>{cantidadSeleccionada}</span>
-                                                </div>
+                                                <span className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff' }}>{cantidadSeleccionada}</span>
                                             )}
-                                            
-                                            <div className="font-bold text-sm sm:text-base line-clamp-2 group-hover:text-emerald-700 leading-tight h-12 z-10 relative pr-8 sm:pr-0">
-                                                {producto.descripcion}
-                                            </div>
-                                            <div className="text-sm sm:text-base text-gray-600 z-10 relative pr-8 sm:pr-0">{producto.presentacion}</div>
-                                            <div className="font-bold text-emerald-600 text-lg sm:text-xl w-full text-left z-10 relative pr-8 sm:pr-0">
-                                                ${formatDinero(producto.precio_venta || producto.precioventa)}
-                                            </div>
-                                            <div className="text-xs text-gray-500 flex items-center gap-1 z-10 relative pr-8 sm:pr-0">
-                                                Stock <span className="text-base font-semibold">{Math.trunc(producto.cantidad_disponible).toString()}</span>
-                                            </div>
+                                            <p className="text-xs font-medium mb-1 line-clamp-2 pr-6" style={{ color: cantidadSeleccionada > 0 ? '#fff' : '#222' }}>{producto.descripcion}</p>
+                                            <p className="text-xs mb-1" style={{ color: cantidadSeleccionada > 0 ? 'rgba(255,255,255,0.6)' : '#aaa' }}>{producto.presentacion}</p>
+                                            <p className="text-sm font-medium" style={{ color: cantidadSeleccionada > 0 ? '#fff' : '#111' }}>${formatDinero(producto.precio_venta || producto.precioventa)}</p>
+                                            <p className="text-xs mt-1" style={{ color: cantidadSeleccionada > 0 ? 'rgba(255,255,255,0.5)' : '#ccc' }}>Stock {Math.trunc(producto.cantidad_disponible)}</p>
                                         </button>
                                     );
                                 })}
                             </div>
 
-                            {/* PAGINACIÓN INFERIOR */}
+                            {/* Paginación inferior */}
                             {productosPagination.totalPages > 1 && (
-                                <div className="flex items-center justify-end gap-2 pt-4 mb-2">
-                                    <button
-                                        onClick={() => setProductosPage(Math.max(1, productosPage - 1))}
-                                        disabled={productosPage === 1}
-                                        className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                    >
-                                        ‹
-                                    </button>
-                                    <button
-                                        onClick={() => setProductosPage(Math.min(productosPagination.totalPages || 1, productosPage + 1))}
-                                        disabled={productosPage === (productosPagination.totalPages || 1)}
-                                        className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                    >
-                                        ›
-                                    </button>
+                                <div className="flex gap-2 mt-4">
+                                    <button onClick={() => setProductosPage(Math.max(1, productosPage - 1))} disabled={productosPage === 1}
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-40"
+                                        style={{ background: '#f5f5f0', border: '0.5px solid #e0e0da', color: '#555' }}>‹</button>
+                                    <button onClick={() => setProductosPage(Math.min(productosPagination.totalPages, productosPage + 1))} disabled={productosPage === productosPagination.totalPages}
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-40"
+                                        style={{ background: '#f5f5f0', border: '0.5px solid #e0e0da', color: '#555' }}>›</button>
                                 </div>
                             )}
                         </div>
 
-                        {/* DETALLES DE PRODUCTOS SELECCIONADOS */}
+                        {/* Productos seleccionados */}
                         {selectedProductos.length > 0 && (
-                            <div className="p-6 sm:p-8 border-b border-gray-100 bg-gray-50">
-                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-gray-800">
-                                    📋 Detalles de Productos ({selectedProductos.length})
-                                </h3>
-                                <div className="space-y-4">
+                            <div className="p-6" style={{ background: '#fafafa', borderBottom: '0.5px solid #f0f0ea' }}>
+                                <p className="text-sm font-medium mb-4" style={{ color: '#111' }}>Detalle ({selectedProductos.length})</p>
+                                <div className="space-y-3">
                                     {selectedProductos.map(producto => (
-                                        <div key={producto.id} className="bg-white p-5 rounded-2xl border shadow-sm hover:shadow-md transition-all flex flex-col lg:flex-row lg:items-center lg:gap-6">
-                                            {/* COLUMNA IZQUIERDA - Descripción + Chip */}
-                                            <div className="flex-1 mb-6 lg:mb-0 lg:mr-6">
-                                                <p className="font-bold text-lg text-gray-900 line-clamp-2">{producto.descripcion}</p>
-                                                <p className="text-base text-gray-600 mt-1">{producto.presentacion}</p>
-                                                
-                                                {/* CHIP PROMOCIÓN ACTIVA */}
+                                        <div key={producto.id} className="flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-xl" style={{ background: '#fff', border: '0.5px solid #e0e0da' }}>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium truncate" style={{ color: '#222' }}>{producto.descripcion}</p>
+                                                <p className="text-xs" style={{ color: '#aaa' }}>{producto.presentacion}</p>
                                                 {producto.promocion_activa && (
-                                                    <p className="inline-flex items-center gap-1 mt-2 px-3 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-800">
-                                                        🎉 {producto.promocion_activa.nombre_promocion}{' '}
-                                                        <span className="font-normal">
-                                                            ({formatDinero(producto.promocion_activa.nuevo_precio_venta)} c/u)
-                                                        </span>
-                                                    </p>
+                                                    <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-md" style={{ background: '#f4faf4', color: '#2a7a2a' }}>
+                                                        {producto.promocion_activa.nombre_promocion} · ${formatDinero(producto.promocion_activa.nuevo_precio_venta)} c/u
+                                                    </span>
                                                 )}
                                             </div>
-
-                                            {/* BOTONES PROMOCIONES */}
                                             {promocionesPorProducto[producto.id] && (
-                                                <div className="flex flex-wrap gap-1 lg:gap-2 mb-4 lg:mb-0 lg:w-32 order-1 lg:order-none">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handlePromocionChange(producto.id, null)}
-                                                        className={`px-3 py-2 m-1.5 md:m-0 rounded-full text-base font-medium transition-all shadow-md flex-shrink-0 ${
-                                                            !producto.promocion_activa
-                                                                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-purple-500/50 scale-105'
-                                                                : 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:shadow-lg'
-                                                        }`}
-                                                    >
-                                                        💰 Individual
+                                                <div className="flex gap-2 flex-wrap">
+                                                    <button type="button" onClick={() => handlePromocionChange(producto.id, null)}
+                                                        className="px-3 py-1 rounded-lg text-xs font-medium transition-all"
+                                                        style={!producto.promocion_activa ? { background: '#222', color: '#fff' } : { background: '#f5f5f0', color: '#555', border: '0.5px solid #e0e0da' }}>
+                                                        Individual
                                                     </button>
                                                     {promocionesPorProducto[producto.id].map((promo) => (
-                                                        <button
-                                                            key={promo.id}
-                                                            type="button"
-                                                            onClick={() => handlePromocionChange(producto.id, promo)}
-                                                            className={`px-3 py-2 m-1.5 md:m-0 rounded-full text-base font-medium transition-all shadow-md flex-shrink-0 ${
-                                                                producto.promocion_activa?.id === promo.id
-                                                                    ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-emerald-500/50 scale-105'
-                                                                    : 'bg-orange-100 text-orange-800 hover:bg-orange-200 hover:shadow-lg'
-                                                            }`}
-                                                        >
+                                                        <button key={promo.id} type="button" onClick={() => handlePromocionChange(producto.id, promo)}
+                                                            className="px-3 py-1 rounded-lg text-xs font-medium transition-all"
+                                                            style={producto.promocion_activa?.id === promo.id ? { background: '#222', color: '#fff' } : { background: '#f5f5f0', color: '#555', border: '0.5px solid #e0e0da' }}>
                                                             {promo.nombre_promocion}
                                                         </button>
                                                     ))}
                                                 </div>
                                             )}
-
-                                            {/* CONTROLES */}
-                                            <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-4 w-full lg:w-auto order-last lg:order-none">
-                                                <div className="flex items-center justify-center gap-3 bg-white p-2 rounded-xl border shadow-sm">
-                                                    <button
-                                                        onClick={() => handleDisminuirCantidad(producto.id)}
-                                                        className="w-12 h-12 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl flex items-center justify-center font-bold hover:scale-110 transition-all"
-                                                    >
-                                                        -
-                                                    </button>
-                                                    <input
-                                                        type="text"
-                                                        value={producto.cantidad?.toString() || '1'}
-                                                        onChange={(e) => handleCantidadChange(producto.id, parseFloat(e.target.value) || 1)}
-                                                        className="w-20 p-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 text-center font-bold text-base bg-white shadow-sm"
-                                                    />
-                                                    <button
-                                                        onClick={() => handleAumentarCantidad(producto.id)}
-                                                        className="w-12 h-12 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl flex items-center justify-center font-bold hover:scale-110 transition-all shadow-md"
-                                                    >
-                                                        +
-                                                    </button>
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-2 rounded-lg p-1" style={{ background: '#f5f5f0', border: '0.5px solid #e0e0da' }}>
+                                                    <button onClick={() => handleDisminuirCantidad(producto.id)} className="w-7 h-7 rounded-md flex items-center justify-center text-sm font-medium transition-all" style={{ background: '#fff', color: '#555' }}>-</button>
+                                                    <input type="text" value={producto.cantidad?.toString() || '1'} onChange={(e) => handleCantidadChange(producto.id, parseFloat(e.target.value) || 1)}
+                                                        className="w-10 text-center text-sm font-medium outline-none" style={{ background: 'transparent', color: '#222' }} />
+                                                    <button onClick={() => handleAumentarCantidad(producto.id)} className="w-7 h-7 rounded-md flex items-center justify-center text-sm font-medium transition-all" style={{ background: '#222', color: '#fff' }}>+</button>
                                                 </div>
-                                                
-                                                <div className="flex items-end lg:items-center gap-3">
-                                                    <span className="font-bold text-2xl text-emerald-600 min-w-[80px] text-right lg:text-left">
-                                                        ${formatDinero((producto.precio_venta || producto.precioventa) * (producto.cantidad || 1))}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => handleBorrarProducto(producto.id)}
-                                                        className="w-12 h-12 bg-red-500 hover:bg-red-600 text-white rounded-xl flex items-center justify-center font-bold hover:scale-110 transition-all shadow-md"
-                                                    >
-                                                        🗑️
-                                                    </button>
-                                                </div>
+                                                <span className="text-sm font-medium min-w-[64px] text-right" style={{ color: '#111' }}>
+                                                    ${formatDinero((producto.precio_venta || producto.precioventa) * (producto.cantidad || 1))}
+                                                </span>
+                                                <button onClick={() => handleBorrarProducto(producto.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-all" style={{ background: '#fdf4f4', color: '#a03030', border: '0.5px solid #f0d0d0' }}>✕</button>
                                             </div>
                                         </div>
                                     ))}
@@ -1827,33 +1365,13 @@ const Cuentas = () => {
                         )}
                     </div>
 
-                    {/* BOTONES MÁS PEQUEÑOS EN MÓVIL */}
-                    <div className="p-4 sm:p-8 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-center">
-                        <button
-                            onClick={handleCerrarModal}
-                            className="flex-1 sm:flex-none w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 border border-gray-300 text-gray-700 font-semibold text-sm sm:text-base rounded-xl sm:rounded-2xl hover:bg-gray-50 hover:shadow-md transition-all duration-200"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            onClick={handleCrearCuenta}
-                            disabled={!createForm.cliente || selectedProductos.length === 0 || creatingCuenta}
-                            className="flex-1 sm:flex-none w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 disabled:shadow-none text-sm sm:text-base"
-                        >
-                            {creatingCuenta ? (
-                                <>
-                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                                    </svg>
-                                    Creando...
-                                </>
-                            ) : (
-                                <>
-                                    Crear Cuenta 
-                                    <span className="text-base sm:text-lg font-bold">{selectedProductos.length}</span>
-                                </>
-                            )}
+                    {/* Footer */}
+                    <div className="px-6 py-4 flex gap-3 justify-end" style={{ borderTop: '0.5px solid #f0f0ea' }}>
+                        <button onClick={handleCerrarModal} className="px-5 py-2.5 rounded-lg text-sm font-medium" style={{ background: '#f5f5f0', color: '#555', border: '0.5px solid #e0e0da' }}>Cancelar</button>
+                        <button onClick={handleCrearCuenta} disabled={!createForm.cliente || selectedProductos.length === 0 || creatingCuenta}
+                            className="px-5 py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 flex items-center gap-2"
+                            style={{ background: '#222', color: '#fff', border: 'none' }}>
+                            {creatingCuenta ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Creando...</> : `Crear Venta · ${selectedProductos.length}`}
                         </button>
                     </div>
                 </div>
@@ -1861,556 +1379,218 @@ const Cuentas = () => {
             </>
         )}
 
-        {/* ✅ MODAL DETALLE - CATEGORÍAS ARRIBA DE PAGINACIÓN SUPERIOR */}
+        {/* ── MODAL DETALLE / EDITAR ───────────────────────────────── */}
         {showDetailModal && selectedCuenta && (
-            <div>
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] animate-in fade-in-0 zoom-in-95 duration-200" onClick={handleCerrarDetalle} />
-            <div className="fixed inset-0 z-[70] p-4 sm:p-6 flex items-center justify-center">
-                <div className="w-full max-w-6xl max-h-[95vh] flex flex-col bg-white rounded-3xl sm:rounded-[2rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-200">
-                    
-                    {/* HEADER PEQUEÑO FIJO */}
-                    <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 flex-shrink-0">
-                        <div className="flex justify-between items-center">
+            <>
+            <div className="fixed inset-0 z-[70]" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={handleCerrarDetalle} />
+            <div className="fixed inset-0 z-[70] p-4 flex items-center justify-center">
+                <div className="w-full max-w-6xl max-h-[95vh] flex flex-col rounded-2xl overflow-hidden" style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 8px 40px rgba(0,0,0,0.12)' }}>
+
+                    {/* Header */}
+                    <div className="px-6 py-4 flex-shrink-0" style={{ borderBottom: '0.5px solid #f0f0ea' }}>
+                        <div className="flex items-center justify-between mb-4">
                             <div>
-                                <h2 className="text-lg sm:text-xl font-bold text-gray-900">
-                                    Editar Cuenta #{selectedCuenta.id}
-                                </h2>
-                                <p className="text-base text-gray-600">
-                                    Total <span className="text-xl font-bold text-emerald-600">
-                                        ${formatDinero([...detalleProductos, ...editProductos].reduce((total, p) => total + (p.precio_venta || p.precioventa || 0) * (p.cantidad || 1), 0))}
-                                    </span>
-                                    ({detalleProductos.length + editProductos.length} productos)
+                                <h2 className="text-base font-medium" style={{ color: '#111' }}>Editar Venta #{selectedCuenta.id}</h2>
+                                <p className="text-xs" style={{ color: '#aaa' }}>
+                                    Total: <span className="font-medium" style={{ color: '#111' }}>
+                                        ${formatDinero([...detalleProductos, ...editProductos].reduce((t, p) => t + (p.precio_venta || p.precioventa || 0) * (p.cantidad || 1), 0))}
+                                    </span> · {detalleProductos.length + editProductos.length} productos
                                 </p>
                             </div>
-                            <button onClick={handleCerrarDetalle} className="p-2 rounded-2xl hover:bg-gray-200 transition-all">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                            <button onClick={handleCerrarDetalle} className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#f5f5f0' }}>
+                                <svg className="w-4 h-4" style={{ color: '#666' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
-
-                        {/* FORM CABECERA - SIN CATEGORÍAS */}
-                        <form className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end mt-6">
-                            {/* 1. CLIENTE */}
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">👤 Cliente *</label>
-                                <input
-                                    className="w-full p-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                                    value={editForm.cliente}
-                                    onChange={(e) => setEditForm({ ...editForm, cliente: e.target.value })}
-                                    required
-                                    placeholder="Nombre del cliente"
-                                />
-                            </div>
-
-                            {/* 2. TIPO DE CUENTA */}
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                                    Tipo de Cuenta
-                                </label>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleEditTipoChange({ target: { value: 'individual' } })}
-                                        className={`flex items-center justify-center gap-2 py-3 px-2 rounded-xl border-2 transition-all duration-200 ${
-                                            editForm.tipo_cuenta === 'individual'
-                                                ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500'
-                                                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
-                                        }`}
-                                    >
-                                        <span className="text-base">👤</span>
-                                        <span className="font-medium text-sm">Individual</span>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => handleEditTipoChange({ target: { value: 'mesa' } })}
-                                        className={`flex items-center justify-center gap-2 py-3 px-2 rounded-xl border-2 transition-all duration-200 ${
-                                            editForm.tipo_cuenta === 'mesa'
-                                                ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500'
-                                                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
-                                        }`}
-                                    >
-                                        <span className="text-base">🪑</span>
-                                        <span className="font-medium text-sm">Mesa</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
+                        <div>
+                            <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>CLIENTE</label>
+                            <input className="w-full max-w-sm px-4 py-2.5 rounded-lg text-sm outline-none"
+                                style={{ background: '#fafafa', border: '0.5px solid #e0e0da', color: '#222' }}
+                                value={editForm.cliente}
+                                onChange={(e) => setEditForm({ ...editForm, cliente: e.target.value })}
+                                required placeholder="Nombre del cliente" />
+                        </div>
                     </div>
 
-                    {/* CONTENIDO SCROLLABLE */}
+                    {/* Contenido scrollable */}
                     <div className="flex-1 overflow-y-auto min-h-0">
-                        {/* MESAS */}
-                        {editForm.tipo_cuenta === 'mesa' && (
-                            <div className="p-6 sm:p-8 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-amber-50">
-                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">🪑 Seleccionar Mesa</h3>
-                                {/* Paginacion mesas */}
-                                    {mesasTotalPages > 1 && (
-                                        <div className="flex items-center justify-end gap-2 pb-4 mb-2">
-                                            <button 
-                                                onClick={() => setMesasPage(p => Math.max(1, p - 1))}
-                                                disabled={mesasPage === 1}
-                                                className="w-12 h-12 bg-gradient-to-r from-orange-800 to-orange-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                            >
-                                                ‹
-                                            </button>
-                                            <button 
-                                                onClick={() => setMesasPage(p => Math.min(mesasTotalPages, p + 1))}
-                                                disabled={mesasPage === mesasTotalPages}
-                                                className="w-12 h-12 bg-gradient-to-r from-orange-800 to-orange-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                            >
-                                                ›
-                                            </button>
-                                        </div>
-                                    )}                                          
-                                    {/*Grid de mesas */}                          
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-                                        {mesas.map(mesa => (
-                                            <button
-                                                key={mesa.id}
-                                                type="button"
-                                                onClick={() => setEditForm({ ...editForm, mesa_id: mesa.id })}
-                                                className={`group p-4 sm:p-5 rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg border-4 h-full flex flex-col items-center justify-center gap-3 ${
-                                                    editForm.mesa_id === mesa.id
-                                                        ? 'ring-4 ring-blue-500 bg-blue-50 border-blue-400 shadow-2xl shadow-blue-200/50'
-                                                        : mesa.estado === 'disponible'
-                                                        ? 'bg-emerald-100 border-emerald-400 hover:bg-emerald-200 hover:shadow-xl hover:shadow-emerald-200/50'
-                                                        : 'bg-orange-100 border-orange-400 hover:bg-orange-200 hover:shadow-xl hover:shadow-orange-200/50'
-                                                }`}
-                                            >
-                                                <div className="text-2xl font-bold">Mesa {mesa.numero_mesa}</div>
-                                                <span className={`px-3 py-2 rounded-xl text-xs font-bold ${
-                                                    mesa.estado === 'disponible' 
-                                                        ? 'bg-emerald-200 text-emerald-800 shadow-emerald-200/50' 
-                                                        : 'bg-orange-200 text-orange-800 shadow-orange-200/50'
-                                                }`}>
-                                                    {mesa.estado === 'disponible' ? '✅ LIBRE' : '🪑 OCUPADA'}
-                                                </span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                    {/* Paginacion mesas */}
-                                    {mesasTotalPages > 1 && (
-                                        <div className="flex items-center justify-end gap-2 pt-4 mb-2">
-                                            <button 
-                                                onClick={() => setMesasPage(p => Math.max(1, p - 1))}
-                                                disabled={mesasPage === 1}
-                                                className="w-12 h-12 bg-gradient-to-r from-orange-800 to-orange-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                            >
-                                                ‹
-                                            </button>
-                                            <button 
-                                                onClick={() => setMesasPage(p => Math.min(mesasTotalPages, p + 1))}
-                                                disabled={mesasPage === mesasTotalPages}
-                                                className="w-12 h-12 bg-gradient-to-r from-orange-800 to-orange-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                            >
-                                                ›
-                                            </button>
-                                        </div>
-                                    )}   
-                            </div>
-                        )}
 
-                        {/* LISTA PRODUCTOS DESTACADA - CATEGORÍAS ARRIBA PAGINACIÓN */}
-                        <div className="p-6 sm:p-8 border-b-4 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                                <h3 className="text-base sm:text-2xl font-bold flex items-center gap-2 text-blue-800">
-                                    🛍️ Lista de Productos
-                                    <span className="text-sm sm:text-lg bg-blue-200 text-blue-800 px-3 py-1 rounded-full font-semibold">
-                                        {detalleProductos.length + editProductos.length} total
-                                    </span>
-                                </h3>
-                            </div>
+                        {/* Lista productos */}
+                        <div className="p-6" style={{ borderBottom: '0.5px solid #f0f0ea' }}>
+                            <p className="text-sm font-medium mb-4" style={{ color: '#111' }}>Agregar Productos</p>
 
-                            {/* ✅ CATEGORÍAS JUSTO ARRIBA DEL GRID (PARA COHERENCIA) */}
-                            <div className="mb-6">
-                                <label className="block text-sm font-semibold text-blue-700 mb-3">📂 Categorías</label>
-                                <div className="flex gap-2 overflow-x-auto pb-4 -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                                    {/* N/A */}
-                                    <button 
-                                        onClick={() => {
-                                            setCategoriaSeleccionada('N/A');
-                                            fetchProductos(1);
-                                            setProductosPage(1);
-                                        }}
-                                        className={`flex-none min-w-[60px] px-4 py-2.5 rounded-2xl font-bold text-sm whitespace-nowrap shadow-md transition-all duration-300 flex items-center justify-center hover:scale-[1.02] ${
-                                            categoriaSeleccionada === 'N/A'
-                                                ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-emerald-500/50 ring-2 ring-emerald-400/50'
-                                                : 'bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 text-gray-800 hover:shadow-emerald-100/50'
-                                        }`}
-                                    >
-                                        N/A
+                            {/* Categorías */}
+                            <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
+                                <button onClick={() => { setCategoriaSeleccionada('N/A'); fetchProductos(1); setProductosPage(1); }}
+                                    className="flex-none px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all"
+                                    style={categoriaSeleccionada === 'N/A' ? { background: '#222', color: '#fff' } : { background: '#f5f5f0', color: '#666', border: '0.5px solid #e0e0da' }}>
+                                    Todos
+                                </button>
+                                {categorias.map((cat) => (
+                                    <button key={cat.id} onClick={() => { setCategoriaSeleccionada(cat.codigo); fetchProductos(1, '', cat.codigo); setProductosPage(1); }}
+                                        className="flex-none px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all"
+                                        style={categoriaSeleccionada === cat.codigo ? { background: '#222', color: '#fff' } : { background: '#f5f5f0', color: '#666', border: '0.5px solid #e0e0da' }}>
+                                        {cat.codigo}
                                     </button>
-                                    
-                                    {/* Categorías */}
-                                    {categorias.map((cat) => (
-                                        <button 
-                                            key={cat.id}
-                                            onClick={() => {
-                                                setCategoriaSeleccionada(cat.codigo);
-                                                fetchProductos(1, '',cat.codigo);
-                                                setProductosPage(1);
-                                            }}
-                                            className={`flex-none min-w-[80px] px-4 py-2.5 rounded-2xl font-bold text-sm whitespace-nowrap shadow-md transition-all duration-300 flex items-center justify-center hover:scale-[1.02] ${
-                                                categoriaSeleccionada === cat.codigo
-                                                    ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-emerald-500/50 ring-2 ring-emerald-400/50'
-                                                    : 'bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 text-gray-800 hover:shadow-emerald-100/50'
-                                            }`}
-                                        >
-                                            {cat.codigo}
+                                ))}
+                            </div>
+
+                            {/* Buscador */}
+                            <div className="relative mb-4 max-w-sm">
+                                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#bbb' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <input type="search" placeholder="Buscar producto..." value={searchProductoInput}
+                                    onChange={(e) => setSearchProductoInput(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') { setSearchProducto(searchProductoInput); setProductosPage(1); e.target.blur(); } if (e.key === 'Escape') { setSearchProductoInput(''); setSearchProducto(''); } }}
+                                    className="w-full pl-9 pr-4 py-2 text-sm rounded-lg outline-none"
+                                    style={{ background: '#fafafa', border: '0.5px solid #e0e0da', color: '#222' }} />
+                            </div>
+
+                            {/* Paginación superior */}
+                            {productosPagination.totalPages > 1 && (
+                                <div className="flex gap-2 mb-4">
+                                    <button onClick={() => setProductosPage(Math.max(1, productosPage - 1))} disabled={productosPage === 1}
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-40"
+                                        style={{ background: '#f5f5f0', border: '0.5px solid #e0e0da', color: '#555' }}>‹</button>
+                                    <button onClick={() => setProductosPage(Math.min(productosPagination.totalPages, productosPage + 1))} disabled={productosPage === productosPagination.totalPages}
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-40"
+                                        style={{ background: '#f5f5f0', border: '0.5px solid #e0e0da', color: '#555' }}>›</button>
+                                </div>
+                            )}
+
+                            {/* Grid productos */}
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                                {productos.map(producto => {
+                                    const enDetalle = detalleProductos.find(p => p.id === producto.id);
+                                    const enEdit = editProductos.find(p => p.id === producto.id);
+                                    const cantidadSeleccionada = Number(enDetalle?.cantidad || 0) + Number(enEdit?.cantidad || 0);
+                                    return (
+                                        <button key={producto.id} onClick={() => handleAgregarProductoDetalle(producto)}
+                                            className="p-3 rounded-xl text-left transition-all duration-200 relative"
+                                            style={cantidadSeleccionada > 0
+                                                ? { background: '#222', border: '0.5px solid #222' }
+                                                : { background: '#fff', border: '0.5px solid #e0e0da' }}>
+                                            {cantidadSeleccionada > 0 && (
+                                                <span className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff' }}>{cantidadSeleccionada}</span>
+                                            )}
+                                            <p className="text-xs font-medium mb-1 line-clamp-2 pr-6" style={{ color: cantidadSeleccionada > 0 ? '#fff' : '#222' }}>{producto.descripcion}</p>
+                                            <p className="text-xs mb-1" style={{ color: cantidadSeleccionada > 0 ? 'rgba(255,255,255,0.6)' : '#aaa' }}>{producto.presentacion}</p>
+                                            <p className="text-sm font-medium" style={{ color: cantidadSeleccionada > 0 ? '#fff' : '#111' }}>${formatDinero(producto.precio_venta)}</p>
+                                            <p className="text-xs mt-1" style={{ color: cantidadSeleccionada > 0 ? 'rgba(255,255,255,0.5)' : '#ccc' }}>Stock {Math.trunc(producto.cantidad_disponible)}</p>
                                         </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Paginación inferior */}
+                            {productosPagination.totalPages > 1 && (
+                                <div className="flex gap-2 mt-4">
+                                    <button onClick={() => setProductosPage(Math.max(1, productosPage - 1))} disabled={productosPage === 1}
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-40"
+                                        style={{ background: '#f5f5f0', border: '0.5px solid #e0e0da', color: '#555' }}>‹</button>
+                                    <button onClick={() => setProductosPage(Math.min(productosPagination.totalPages, productosPage + 1))} disabled={productosPage === productosPagination.totalPages}
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-40"
+                                        style={{ background: '#f5f5f0', border: '0.5px solid #e0e0da', color: '#555' }}>›</button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Productos en detalle */}
+                        {(detalleProductos.length > 0 || editProductos.length > 0) && (
+                            <div className="p-6" style={{ background: '#fafafa' }}>
+                                <p className="text-sm font-medium mb-4" style={{ color: '#111' }}>Detalle ({detalleProductos.length + editProductos.length})</p>
+                                <div className="space-y-3">
+                                    {/* Nuevos */}
+                                    {editProductos.map(producto => (
+                                        <div key={producto.id} className="flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-xl" style={{ background: '#fff', border: '0.5px solid #e0e0da', borderLeft: '2px solid #2a7a2a' }}>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium truncate" style={{ color: '#222' }}>{producto.descripcion}</p>
+                                                <p className="text-xs" style={{ color: '#aaa' }}>{producto.presentacion}</p>
+                                                <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-md" style={{ background: '#f4faf4', color: '#2a7a2a' }}>Nuevo</span>
+                                            </div>
+                                            {promocionesPorProductoDetalle[producto.id] && (
+                                                <div className="flex gap-2 flex-wrap">
+                                                    <button type="button" onClick={() => handlePromocionChangeEdit(producto.id, null)}
+                                                        className="px-3 py-1 rounded-lg text-xs font-medium"
+                                                        style={!producto.promocion_activa ? { background: '#222', color: '#fff' } : { background: '#f5f5f0', color: '#555', border: '0.5px solid #e0e0da' }}>
+                                                        Individual
+                                                    </button>
+                                                    {promocionesPorProductoDetalle[producto.id].map((promo) => (
+                                                        <button key={promo.id} type="button" onClick={() => handlePromocionChangeEdit(producto.id, promo)}
+                                                            className="px-3 py-1 rounded-lg text-xs font-medium"
+                                                            style={producto.promocion_activa?.id == promo.id ? { background: '#222', color: '#fff' } : { background: '#f5f5f0', color: '#555', border: '0.5px solid #e0e0da' }}>
+                                                            {promo.nombre_promocion}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-2 rounded-lg p-1" style={{ background: '#f5f5f0', border: '0.5px solid #e0e0da' }}>
+                                                    <button onClick={() => handleDisminuirCantidadEdit(producto.id)} className="w-7 h-7 rounded-md flex items-center justify-center text-sm" style={{ background: '#fff', color: '#555' }}>-</button>
+                                                    <span className="w-10 text-center text-sm font-medium" style={{ color: '#222' }}>{producto.cantidad || 1}</span>
+                                                    <button onClick={() => handleAumentarCantidadEdit(producto.id)} className="w-7 h-7 rounded-md flex items-center justify-center text-sm" style={{ background: '#222', color: '#fff' }}>+</button>
+                                                </div>
+                                                <span className="text-sm font-medium min-w-[60px] text-right" style={{ color: '#111' }}>${formatDinero((producto.precio_venta || producto.precioventa || 0) * (producto.cantidad || 1))}</span>
+                                                <button onClick={() => handleEliminarProductoEdit(producto.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-xs" style={{ background: '#fdf4f4', color: '#a03030', border: '0.5px solid #f0d0d0' }}>✕</button>
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {/* Originales */}
+                                    {detalleProductos.map(producto => (
+                                        <div key={producto.id} className="flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-xl" style={{ background: '#fff', border: '0.5px solid #e0e0da', borderLeft: '2px solid #b8860b' }}>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium truncate" style={{ color: '#222' }}>{producto.descripcion}</p>
+                                                <p className="text-xs" style={{ color: '#aaa' }}>{producto.presentacion}</p>
+                                                <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-md" style={{ background: '#fdfaf4', color: '#7a6a2a' }}>Original</span>
+                                            </div>
+                                            {promocionesPorProductoDetalle[String(producto.producto_id)] && (
+                                                <div className="flex gap-2 flex-wrap">
+                                                    <button type="button" onClick={() => handlePromocionChangeDetalle(String(producto.id), null)}
+                                                        className="px-3 py-1 rounded-lg text-xs font-medium"
+                                                        style={!producto.promocion_activa ? { background: '#222', color: '#fff' } : { background: '#f5f5f0', color: '#555', border: '0.5px solid #e0e0da' }}>
+                                                        Individual
+                                                    </button>
+                                                    {promocionesPorProductoDetalle[String(producto.producto_id)].map((promo) => (
+                                                        <button key={promo.id} type="button" onClick={() => handlePromocionChangeDetalle(String(producto.id), promo)}
+                                                            className="px-3 py-1 rounded-lg text-xs font-medium"
+                                                            style={producto.promocion_activa?.id == promo.id ? { background: '#222', color: '#fff' } : { background: '#f5f5f0', color: '#555', border: '0.5px solid #e0e0da' }}>
+                                                            {promo.nombre_promocion}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-2 rounded-lg p-1" style={{ background: '#f5f5f0', border: '0.5px solid #e0e0da' }}>
+                                                    <button onClick={() => handleDisminuirCantidadDetalle(producto.id)} className="w-7 h-7 rounded-md flex items-center justify-center text-sm" style={{ background: '#fff', color: '#555' }}>-</button>
+                                                    <span className="w-10 text-center text-sm font-medium" style={{ color: '#222' }}>{producto.cantidad || 1}</span>
+                                                    <button onClick={() => handleAumentarCantidadDetalle(producto.id)} className="w-7 h-7 rounded-md flex items-center justify-center text-sm" style={{ background: '#222', color: '#fff' }}>+</button>
+                                                </div>
+                                                <span className="text-sm font-medium min-w-[60px] text-right" style={{ color: '#111' }}>${formatDinero((producto.precio_venta || 0) * (producto.cantidad || 1))}</span>
+                                                <button onClick={() => handleEliminarProductoDetalle(producto.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-xs" style={{ background: '#fdf4f4', color: '#a03030', border: '0.5px solid #f0d0d0' }}>✕</button>
+                                            </div>
+                                        </div>
                                     ))}
                                 </div>
                             </div>
+                        )}
+                    </div>
 
-                            {/* 🔎 BUSCAR PRODUCTO */}
-                            <div className="mb-4">
-                                <div className="relative">
-
-                                    {/* Icono */}
-                                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                                d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                        </svg>
-                                    </div>
-
-                                    <input
-                                        type="search"
-                                        placeholder="Buscar producto..."
-                                        value={searchProductoInput}
-                                        onChange={(e) => setSearchProductoInput(e.target.value)}
-                                        onKeyDown={(e) => {
-
-                                            if (e.key === "Enter") {
-                                                setSearchProducto(searchProductoInput)
-                                                setProductosPage(1)
-
-                                                // 📱 cerrar teclado móvil
-                                                e.target.blur()
-                                            }
-
-                                            // limpiar con ESC (extra UX)
-                                            if (e.key === "Escape") {
-                                                setSearchProductoInput('')
-                                                setSearchProducto('')
-                                            }
-
-                                        }}
-                                        className="
-                                            w-full
-                                            pl-10 pr-10
-                                            py-2.5
-                                            bg-white
-                                            border border-gray-200
-                                            rounded-xl
-                                            shadow-sm
-                                            placeholder-gray-400
-                                            transition-all
-                                            focus:outline-none
-                                            focus:border-blue-400
-                                            focus:ring-4
-                                            focus:ring-blue-100
-                                        "
-                                    />
-
-                                    {/* Botón limpiar */}
-                                    {searchProductoInput && (
-                                        <button
-                                            onClick={() => {
-                                                setSearchProductoInput('')
-                                                setSearchProducto('')
-                                                setProductosPage(1)
-                                            }}
-                                            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-                                        >
-                                            ✕
-                                        </button>
-                                    )}
-
-                                </div>
-                            </div>                                                        
-
-                            {/* ✅ PAGINACIÓN SUPERIOR */}
-                            {productosPagination.totalPages > 1 && (
-                                <div className="flex items-center justify-end gap-2 pb-4 mb-4">
-                                    <button
-                                        onClick={() => setProductosPage(Math.max(1, productosPage - 1))}
-                                        disabled={productosPage === 1}
-                                        className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                    >
-                                        ‹
-                                    </button>
-                                    <button
-                                        onClick={() => setProductosPage(Math.min(productosPagination.totalPages || 1, productosPage + 1))}
-                                        disabled={productosPage === (productosPagination.totalPages || 1)}
-                                        className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                    >
-                                        ›
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* GRID PRODUCTOS */}
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                                    {productos.map(producto => {
-                                        // 1. Buscamos el producto en ambos arrays
-                                        const enDetalle = detalleProductos.find(p => p.id === producto.id);
-                                        const enEdit = editProductos.find(p => p.id === producto.id);
-
-                                        // 2. Cantidad: Si quieres mostrar el TOTAL acumulado
-                                        const cantidadSeleccionada = Number(enDetalle?.cantidad || 0) + Number(enEdit?.cantidad || 0);
-                                        //const yaExiste = enEdit ? true : false;
-                                        return (
-                                            <button
-                                                key={producto.id}
-                                                onClick={() => handleAgregarProductoDetalle(producto)}
-                                                className="group p-4 sm:p-5 border-3 border-blue-300 rounded-2xl hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-300/50 transition-all duration-300 hover:scale-105 bg-gradient-to-br from-white to-blue-50 disabled:opacity-50 disabled:cursor-not-allowed h-full flex flex-col items-start gap-2 shadow-lg hover:shadow-xl relative overflow-hidden"
-                                            >
-                                                {/* BADGE SELECCIONADO CON CANTIDAD */}
-                                                {cantidadSeleccionada > 0 && (
-                                                    <div className="absolute top-2 right-2 flex items-center gap-1 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">
-                                                        <span className="text-sm">✓</span>
-                                                        <span>{cantidadSeleccionada}</span>
-                                                    </div>
-                                                )}
-                                                
-                                                <div className="font-bold text-sm sm:text-base line-clamp-2 group-hover:text-blue-700 leading-tight h-12 z-10 relative pr-8 sm:pr-0">
-                                                    {producto.descripcion}
-                                                </div>
-                                                <div className="text-sm sm:text-base text-gray-600 z-10 relative pr-8 sm:pr-0">{producto.presentacion}</div>
-                                                <div className="font-bold text-emerald-600 text-lg sm:text-xl w-full text-left z-10 relative pr-8 sm:pr-0">
-                                                    ${formatDinero(producto.precio_venta)}
-                                                </div>
-                                                <div className="text-xs text-gray-500 flex items-center gap-1 z-10 relative pr-8 sm:pr-0">
-                                                    Stock <span className="text-base font-semibold">{Math.trunc(producto.cantidad_disponible).toString()}</span>
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-
-                            {/* PAGINACIÓN*/}
-                                {productosPagination.totalPages > 1 && (
-                                    <div className="flex items-center justify-end gap-2 pt-4 mb-2">
-                                        <button
-                                            onClick={() => setProductosPage(Math.max(1, productosPage - 1))}
-                                            disabled={productosPage === 1}
-                                            className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                        >
-                                            ‹
-                                        </button>
-                                        <button
-                                            onClick={() => setProductosPage(Math.min(productosPagination.totalPages || 1, productosPage + 1))}
-                                            disabled={productosPage === (productosPagination.totalPages || 1)}
-                                            className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                                        >
-                                            ›
-                                        </button>
-                                </div>
-                            )}
-                        </div>
-
-                        {(detalleProductos.length > 0 || editProductos.length > 0) && (
-                            <div className="p-6 sm:p-8 border-b border-gray-100 bg-gray-50">
-                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-gray-800">
-                                    📋 Detalles de Productos ({detalleProductos.length + editProductos.length})
-                                </h3>
-                                <div className="space-y-4">
-                                    {/* NUEVOS */}
-                                    {editProductos.map(producto => (
-                                        <div key={producto.id} className="bg-white/80 p-5 rounded-2xl border-l-4 border-emerald-400 shadow-sm hover:shadow-md transition-all flex flex-col lg:flex-row lg:items-center lg:gap-6">
-                                            <div className="flex-1 mb-6 lg:mb-0 lg:mr-6">
-                                                <p className="font-bold text-lg text-gray-900 line-clamp-2">{producto.descripcion}</p>
-                                                <p className="text-base text-gray-600 mt-1">{producto.presentacion}</p>
-                                                {producto.promocion_activa && (
-                                                    <p className="inline-flex items-center gap-1 mt-2 px-3 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-800">
-                                                        🎉 {producto.promocion_activa.nombre_promocion}{' '}
-                                                        <span className="font-normal">({formatDinero(producto.promocion_activa.nuevo_precio_venta)} c/u)</span>
-                                                    </p>
-                                                )}                                                  
-                                    </div>
-                                    {promocionesPorProductoDetalle[producto.id] && (
-                                        <div className="flex flex-wrap gap-1 lg:gap-2 mb-4 lg:mb-0 lg:w-32 order-1 lg:order-none">
-                                            <button
-                                                type="button"
-                                                onClick={() => handlePromocionChangeEdit(producto.id, null)}
-                                                className={`px-3 py-2 m-1.5 md:m-0  rounded-full text-base font-medium transition-all shadow-md flex-shrink-0 ${
-                                                    !producto.promocion_activa
-                                                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-purple-500/50 scale-105'
-                                                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:shadow-lg'
-                                                }`}
-                                            >
-                                                💰 Individual
-                                            </button>
-                                            {promocionesPorProductoDetalle[producto.id].map((promo) => (
-                                                <button
-                                                    key={promo.id}
-                                                    type="button"
-                                                    onClick={() => handlePromocionChangeEdit(producto.id, promo)}
-                                                    className={`px-3 py-2 m-1.5 md:m-0 rounded-full text-base font-medium transition-all shadow-md flex-shrink-0 ${
-                                                        producto.promocion_activa?.id == promo.id
-                                                            ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-emerald-500/50 scale-105'
-                                                            : 'bg-orange-100 text-orange-800 hover:bg-orange-200 hover:shadow-lg'
-                                                    }`}
-                                                >
-                                                    {promo.nombre_promocion}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                    <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-4 w-full lg:w-auto order-last lg:order-none">
-                                                    <div className="flex items-center justify-center gap-3 bg-white p-2 rounded-xl border shadow-sm">
-                                                        <button
-                                                            onClick={() => handleDisminuirCantidadEdit(producto.id)}
-                                                            className="w-12 h-12 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl flex items-center justify-center font-bold hover:scale-110 transition-all"
-                                                        >
-                                                            -
-                                                        </button>
-                                                        <span className="w-20 p-2 border border-gray-300 rounded-xl text-center font-bold text-base bg-white shadow-sm">
-                                                            {producto.cantidad || 1}
-                                                        </span>
-                                                        <button
-                                                            onClick={() => handleAumentarCantidadEdit(producto.id)}
-                                                            className="w-12 h-12 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl flex items-center justify-center font-bold hover:scale-110 transition-all shadow-md"
-                                                        >
-                                                            +
-                                                        </button>
-                                    </div>
-                                    <div className="flex items-end lg:items-center gap-3">
-                                                        <span className="font-bold text-2xl text-emerald-600 min-w-[80px] text-right lg:text-left">
-                                                            ${formatDinero((producto.precio_venta || producto.precioventa || 0) * (producto.cantidad || 1))}
-                                                        </span>
-                                                        <button
-                                                            onClick={() => handleEliminarProductoEdit(producto.id)}
-                                                            className="w-12 h-12 bg-red-500 hover:bg-red-600 text-white rounded-xl flex items-center justify-center font-bold hover:scale-110 transition-all shadow-md"
-                                                        >
-                                                            🗑️
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <p className="text-sm text-gray-600 text-emerald-700 font-medium my-2">Nuevo</p>
-                                            </div>
-                                        ))}
-
-                                        {/* ORIGINALES */}
-                                        {detalleProductos.map(producto => (
-                                            <div key={producto.id} className="bg-white/80 p-5 rounded-2xl border-l-4 border-orange-400 shadow-sm hover:shadow-md transition-all flex flex-col lg:flex-row lg:items-center lg:gap-6">
-                                                <div className="flex-1 mb-6 lg:mb-0 lg:mr-6">
-                                                    <p className="font-bold text-lg text-gray-900 line-clamp-2">{producto.descripcion}</p>
-                                                    <p className="text-base text-gray-600 mt-1">{producto.presentacion}</p>
-                                                    {producto.promocion_activa && (
-                                                        <p className="inline-flex items-center gap-1 mt-2 px-3 py-1 rounded-full text-sm font-semibold bg-orange-100 text-orange-800">
-                                                            🎉 {producto.promocion_activa.nombre_promocion}{' '}
-                                                            <span className="font-normal">({formatDinero(producto.promocion_activa.nuevo_precio_venta)} c/u)</span>
-                                                        </p>
-                                                    )}
-                                                </div>
-
-                                                {promocionesPorProductoDetalle[String(producto.producto_id)] && (
-                                                    <div className="flex flex-wrap gap-1 lg:gap-2 mb-4 lg:mb-0 lg:w-32 order-1 lg:order-none">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handlePromocionChangeDetalle(String(producto.id), null)}
-                                                            className={`px-3 py-2 m-1.5 md:m-0 rounded-full text-base font-medium transition-all shadow-md flex-shrink-0 ${
-                                                                !producto.promocion_activa 
-                                                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-purple-500/50 scale-105'
-                                                                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:shadow-lg'
-                                                            }`}
-                                                        >
-                                                            💰 Individual
-                                                        </button>
-                                                        {promocionesPorProductoDetalle[String(producto.producto_id)].map((promo) => (
-                                                            <button
-                                                                key={promo.id}
-                                                                type="button"
-                                                                onClick={() => handlePromocionChangeDetalle(String(producto.id), promo)}
-                                                                className={`px-3 py-2 m-1.5 md:m-0  rounded-full text-base font-medium transition-all shadow-md flex-shrink-0 ${
-                                                                    producto.promocion_activa?.id == promo.id
-                                                                        ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-emerald-500/50 scale-105'
-                                                                        : 'bg-orange-100 text-orange-800 hover:bg-orange-200 hover:shadow-lg'
-                                                                }`}
-                                                            >
-                                                                {promo.nombre_promocion}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                )}
-
-                                                <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-4 w-full lg:w-auto order-last lg:order-none">
-                                                    <div className="flex items-center justify-center gap-3 bg-white p-2 rounded-xl border shadow-sm">
-                                                        <button
-                                                            onClick={() => handleDisminuirCantidadDetalle(producto.id)}
-                                                            className="w-12 h-12 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl flex items-center justify-center font-bold hover:scale-110 transition-all"
-                                                        >
-                                                            -
-                                                        </button>
-                                                        <span className="w-20 p-2 border border-gray-300 rounded-xl text-center font-bold text-base bg-white shadow-sm">
-                                                            {producto.cantidad || 1}
-                                                        </span>
-                                                        <button
-                                                            onClick={() => handleAumentarCantidadDetalle(producto.id)}
-                                                            className="w-12 h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-xl flex items-center justify-center font-bold hover:scale-110 transition-all shadow-md"
-                                                        >
-                                                            +
-                                                        </button>
-                                                    </div>
-                                                    <div className="flex items-end lg:items-center gap-3">
-                                                        <span className="font-bold text-2xl text-emerald-600 min-w-[80px] text-right lg:text-left">
-                                                            ${formatDinero((producto.precio_venta || 0) * (producto.cantidad || 1))}
-                                                        </span>
-                                                        <button
-                                                            onClick={() => handleEliminarProductoDetalle(producto.id)}
-                                                            className="w-12 h-12 bg-red-500 hover:bg-red-600 text-white rounded-xl flex items-center justify-center font-bold hover:scale-110 transition-all shadow-md"
-                                                        >
-                                                            🗑️
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <p className="text-sm text-gray-600 my-2">Original</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                    {/* BOTONES */}
-                    <div className="p-4 sm:p-8 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-center">
-                            <button
-                                onClick={handleCerrarDetalle}
-                                className="flex-1 sm:flex-none w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 border border-gray-300 text-gray-700 font-semibold text-sm sm:text-base rounded-xl sm:rounded-2xl hover:bg-gray-50 hover:shadow-md transition-all duration-200"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleGuardarDetalle}
-                                disabled={!editForm.cliente || creatingCuentaDetalle}
-                                className="flex-1 sm:flex-none w-full sm:w-auto bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 disabled:shadow-none text-sm sm:text-base"
-                            >
-                                {creatingCuentaDetalle ? (
-                                    <>
-                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                                        </svg>
-                                        Guardando...
-                                    </>
-                                ) : (
-                                    'Guardar Cambios'
-                                )}
-                            </button>
-                        </div>
+                    {/* Footer */}
+                    <div className="px-6 py-4 flex gap-3 justify-end" style={{ borderTop: '0.5px solid #f0f0ea' }}>
+                        <button onClick={handleCerrarDetalle} className="px-5 py-2.5 rounded-lg text-sm font-medium" style={{ background: '#f5f5f0', color: '#555', border: '0.5px solid #e0e0da' }}>Cancelar</button>
+                        <button onClick={handleGuardarDetalle} disabled={!editForm.cliente || creatingCuentaDetalle}
+                            className="px-5 py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 flex items-center gap-2"
+                            style={{ background: '#222', color: '#fff', border: 'none' }}>
+                            {creatingCuentaDetalle ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Guardando...</> : 'Guardar Cambios'}
+                        </button>
                     </div>
                 </div>
             </div>
-            
+            </>
         )}
-        <CorteCajaModal 
-                isOpen={showCorteModal} 
-                onClose={() => setShowCorteModal(false)}
-            />
+
+        <CorteCajaModal isOpen={showCorteModal} onClose={() => setShowCorteModal(false)} />
         </>
     );
 };
