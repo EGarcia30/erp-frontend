@@ -987,9 +987,9 @@ const Cuentas = () => {
                                 {/* Info */}
                                 <div className="space-y-2 mb-4">
                                     <p className="text-sm font-medium truncate" style={{ color: '#333' }}>{cuenta.cliente.toUpperCase()}</p>
-                                    {cuenta.mesa_id && (
+                                    {/* {cuenta.mesa_id && (
                                         <p className="text-xs" style={{ color: '#aaa' }}>Mesa {cuenta.numero_mesa}</p>
-                                    )}
+                                    )} */}
                                     <span className="inline-block text-xs px-2 py-1 rounded-md"
                                         style={esContado
                                             ? { background: '#f4faf4', color: '#2a7a2a', border: '0.5px solid #c8e6c8' }
@@ -997,6 +997,9 @@ const Cuentas = () => {
                                         }>
                                         {esContado ? 'Contado' : 'Crédito'}
                                     </span>
+                                    <div className="flex justify-between text-xs">
+                                        <span style={{ color: '#555' }}>{formatFechaUTCWithTime(cuenta.fecha_creado)}</span>
+                                    </div>
                                 </div>
 
                                 {/* Total */}
