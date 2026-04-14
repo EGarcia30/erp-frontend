@@ -419,607 +419,381 @@ const GastosOperativos = () => {
         return `${day}/${month}/${year} ${hoursStr}:${minutes} ${ampm}`;
     };
 
+    // GastosOperativos.jsx — fragmento return (reemplaza desde el loading hasta el final)
+// El resto del componente (estados, handlers, fetches) permanece igual.
+
     if (loading && gastos.length === 0) {
         return (
-        <div className="min-h-screen flex items-center justify-center px-4 py-12">
-            <div className="text-center">
-            <div className="w-16 h-16 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-xl font-semibold text-gray-700">Cargando gastos...</p>
+            <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: 'linear-gradient(135deg, #f8f8f6 0%, #eeeee8 40%, #e8ede8 100%)' }}>
+                <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-800 rounded-full animate-spin mb-4" />
+                <p className="text-sm" style={{ color: '#888' }}>Cargando gastos...</p>
             </div>
-        </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            
-            {/* HEADER */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
-                <div>
-                    <h1 className="text-4xl lg:text-5xl font-black bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">
-                    💸 Gastos Operativos
-                    </h1>
-                    <p className="text-xl text-gray-600">Gestión completa de gastos operativos</p>
-                </div>
-                <button
-                    onClick={handleAbrirCrearModal}
-                    className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-3 text-lg"
-                >
-                    ➕ Nuevo Gasto
-                </button>
-            </div>
+        <div className="min-h-screen py-8 px-4 lg:px-8 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #f8f8f6 0%, #eeeee8 40%, #e8ede8 100%)' }}>
 
-            {/* PAGINACIÓN GASTOS SUPERIOR - CORREGIDA */}
-            {gastosPagination.totalPages > 1 && (
-                <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-md lg:shadow-lg mb-8 lg:mb-12 flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-4">
-                    
-                    {/* BOTÓN ANTERIOR */}
-                    <button 
-                    className="w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md lg:shadow-lg text-xs lg:text-sm flex-shrink-0"
-                    onClick={() => setGastosPage(Math.max(1, gastosPage - 1))}
-                    disabled={gastosPage <= 1}
-                    >
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    </button>
+            {/* Círculos decorativos */}
+            <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full pointer-events-none" style={{ background: 'rgba(163,181,163,0.12)' }} />
+            <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full pointer-events-none" style={{ background: 'rgba(163,181,163,0.08)' }} />
 
-                    {/* NÚMEROS PÁGINAS */}
-                    <div className="hidden sm:flex gap-1 lg:gap-2 justify-center min-w-[120px] lg:min-w-[160px]">
-                    {Array.from({ length: Math.min(5, gastosPagination.totalPages) }, (_, i) => {
-                        const startPage = Math.max(1, gastosPage - 2);
-                        const pageNum = Math.min(startPage + i, gastosPagination.totalPages);
-                        return (
-                        <button
-                            key={pageNum}
-                            className={`w-10 h-10 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 hover:scale-105 shadow-sm lg:shadow-md flex items-center justify-center text-sm lg:text-base flex-shrink-0 ${
-                            pageNum === gastosPage 
-                                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/25' 
-                                : 'bg-gray-100 text-gray-700 hover:bg-emerald-100 hover:text-emerald-700 border border-gray-200 hover:border-emerald-200'
-                            }`}
-                            onClick={() => setGastosPage(pageNum)}
-                        >
-                            {pageNum}
-                        </button>
-                        );
-                    })}
-                    </div>
+            <div className="max-w-7xl mx-auto relative z-10">
 
-                    {/* BOTÓN SIGUIENTE */}
-                    <button 
-                    className="w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md lg:shadow-lg text-xs lg:text-sm flex-shrink-0"
-                    onClick={() => setGastosPage(Math.min(gastosPagination.totalPages, gastosPage + 1))}
-                    disabled={gastosPage >= gastosPagination.totalPages}
-                    >
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    </button>
-
-                    {/* INDICADOR ACTUAL */}
-                    <div className="hidden sm:block text-gray-700 font-semibold bg-gray-100 px-4 py-2 lg:px-6 lg:py-3 rounded-xl lg:rounded-2xl border border-gray-200 text-sm lg:text-base whitespace-nowrap flex-shrink-0">
-                    Pg. <span className="text-emerald-600 font-bold">{gastosPage}</span> de <span className="text-teal-600 font-bold">{gastosPagination.totalPages}</span>
-                    </div>
-                </div>
-            )}
-
-            {/* GRID GASTOS - DISEÑO ARMONIOSO */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {gastos.map(gasto => (
-                    <div key={gasto.id} className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl border border-gray-100 hover:border-gray-200 transition-all duration-300 hover:-translate-y-1 h-full">
-                    
-                    {/* HEADER - ID + ESTADO */}
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-xl font-bold text-gray-900 line-clamp-1">Gasto #{gasto.id}</h3>
-                        <span className={`px-3 py-1 rounded-full text-sm font-bold whitespace-nowrap ${
-                        gasto.estado === 'aprobado' 
-                            ? 'bg-emerald-100 text-emerald-800' 
-                            : gasto.estado === 'rechazado'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-amber-100 text-amber-800'
-                        }`}>
-                        {gasto.estado === 'aprobado' ? '✅ Aprobado' : 
-                        gasto.estado === 'rechazado' ? '❌ Rechazado' : '⏳ Pendiente'}
-                        </span>
-                    </div>
-                    
-                    {/* INFO - MÁS ESPACIO */}
-                    <div className="space-y-3 mb-8 flex-1">
-                        <p className="text-lg text-gray-600 font-medium">Descripción: 
-                        <span className="block text-xl font-bold text-gray-900 mt-1">{gasto.descripcion}</span>
-                        </p>
-                        <p className="text-lg text-gray-600 font-medium flex items-center gap-2">
-                        <span className="text-emerald-600">📋</span>
-                        <span className="font-bold text-gray-900">{gasto.tipo_gasto?.replace('_', ' ').toUpperCase()}</span>
-                        </p>
-                        <div className="flex items-start">
-                            <span className="text-sm font-bold text-gray-600">{formatFechaUTCWithTime(gasto.fecha_creado)}</span>
-                        </div>
-                    </div>
-
-                    {/* TOTAL - DESTACADO */}
-                    <div className="text-2xl lg:text-3xl font-black text-emerald-600 mb-6 bg-gradient-to-r from-emerald-50 to-green-50 p-6 rounded-2xl shadow-lg">
-                        -${formatDinero(gasto.total)}
-                    </div>
-
-                    {/* BOTONES - ICONOS + TEXTO XS */}
-                    <div className="space-y-2">
-                    {/* PENDIENTE: 3 botones compactos */}
-                    {gasto.estado === 'pendiente' && (
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <button
-                            onClick={() => handleAprobarGasto(gasto.id)}
-                            disabled={updatingGasto === gasto.id}
-                            className="h-12 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 text-xs"
-                        >
-                            {updatingGasto === gasto.id ? (
-                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                            </svg>
-                            ) : (
-                            <>
-                                ✅ Aprobar
-                            </>
-                            )}
-                        </button>
-                        <button
-                            onClick={() => handleRechazarGasto(gasto.id)}
-                            disabled={updatingGasto === gasto.id}
-                            className="h-12 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 text-xs"
-                        >
-                            {updatingGasto === gasto.id ? (
-                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                            </svg>
-                            ) : (
-                            <>
-                                ❌ Rechazar
-                            </>
-                            )}
-                        </button>
-                        <button
-                            onClick={() => handleAbrirEditar(gasto)}
-                            className="h-12 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-1 text-xs"
-                        >
-                            👁️ Detalle
-                        </button>
-                        </div>
-                    )}
-
-                    {/* APROBADO/RECHAZADO: Botón grande */}
-                    {gasto.estado !== 'pendiente' && (
-                        <button 
-                        onClick={() => handleAbrirEditar(gasto)}
-                        className="w-full h-14 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-2 text-sm"
-                        >
-                        👁️ Ver Detalle
-                        </button>
-                    )}
-                    </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* PAGINACIÓN GASTOS INFERIOR - EXACTA IGUAL SUPERIOR */}
-            {gastosPagination.totalPages > 1 && (
-                <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-md lg:shadow-lg mb-8 lg:mb-12 flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-4">
-                    {/* MISMO CÓDIGO QUE SUPERIOR */}
-                    <button 
-                    className="w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md lg:shadow-lg text-xs lg:text-sm flex-shrink-0"
-                    onClick={() => setGastosPage(Math.max(1, gastosPage - 1))}
-                    disabled={gastosPage <= 1}
-                    >
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    </button>
-
-                    <div className="hidden sm:flex gap-1 lg:gap-2 justify-center min-w-[120px] lg:min-w-[160px]">
-                    {Array.from({ length: Math.min(5, gastosPagination.totalPages) }, (_, i) => {
-                        const startPage = Math.max(1, gastosPage - 2);
-                        const pageNum = Math.min(startPage + i, gastosPagination.totalPages);
-                        return (
-                        <button
-                            key={pageNum}
-                            className={`w-10 h-10 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 hover:scale-105 shadow-sm lg:shadow-md flex items-center justify-center text-sm lg:text-base flex-shrink-0 ${
-                            pageNum === gastosPage 
-                                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/25' 
-                                : 'bg-gray-100 text-gray-700 hover:bg-emerald-100 hover:text-emerald-700 border border-gray-200 hover:border-emerald-200'
-                            }`}
-                            onClick={() => setGastosPage(pageNum)}
-                        >
-                            {pageNum}
-                        </button>
-                        );
-                    })}
-                    </div>
-
-                    <button 
-                    className="w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md lg:shadow-lg text-xs lg:text-sm flex-shrink-0"
-                    onClick={() => setGastosPage(Math.min(gastosPagination.totalPages, gastosPage + 1))}
-                    disabled={gastosPage >= gastosPagination.totalPages}
-                    >
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    </button>
-
-                    <div className="hidden sm:block text-gray-700 font-semibold bg-gray-100 px-4 py-2 lg:px-6 lg:py-3 rounded-xl lg:rounded-2xl border border-gray-200 text-sm lg:text-base whitespace-nowrap flex-shrink-0">
-                    Pg. <span className="text-emerald-600 font-bold">{gastosPage}</span> de <span className="text-teal-600 font-bold">{gastosPagination.totalPages}</span>
-                    </div>
-                </div>
-            )}
-
-            {gastos.length === 0 && !loading && (
-                <div className="text-center py-20">
-                <div className="text-6xl mb-4">💸</div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">No hay gastos operativos</h2>
-                <p className="text-gray-600 mb-6">Crea el primer gasto operativo para empezar</p>
-                <button
-                    onClick={() => setShowCreateModal(true)}
-                    className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-3 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300"
-                >
-                    ➕ Nuevo Gasto Operativo
-                </button>
-                </div>
-            )}
-        </div>
-
-        {/* MODAL CREAR/EDITAR - PANTALLA COMPLETA + SCROLL ÚNICO */}
-        {(showCreateModal || showEditModal) && (
-        <>
-            <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[999]" 
-            onClick={() => {
-                setShowCreateModal(false);
-                setShowEditModal(false);
-                resetForm();
-            }}
-            />
-            <div className="fixed inset-0 z-[1000] p-2 sm:p-4 flex items-center justify-center">
-            <div className="w-full max-w-[95vw] lg:max-w-6xl h-[95vh] lg:h-[90vh] bg-white rounded-3xl shadow-2xl flex flex-col animate-in slide-in-from-bottom-4 duration-300 overflow-hidden">
-                
-                {/* HEADER FIJO */}
-                <div className="p-4 sm:p-6 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-teal-50 flex-shrink-0">
-                <div className="flex justify-between items-center mb-4">
+                {/* HEADER */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
                     <div>
-                    <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-                        {showEditModal ? '✏️ Editar Gasto' : '💸 Nuevo Gasto Operativo'}
-                    </h2>
-                    <p className="text-base sm:text-lg text-gray-600">
-                        Total: <span className="text-xl sm:text-2xl font-black text-emerald-600">-${formatDinero(calcularTotal())}</span>
-                        {selectedProductos.length > 0 && (
-                        <span className="ml-3 bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-bold">
-                            {selectedProductos.length} producto{selectedProductos.length !== 1 ? 's' : ''}
-                        </span>
-                        )}
-                    </p>
+                        <h1 className="text-3xl font-medium mb-1" style={{ color: '#111' }}>Gastos Operativos</h1>
+                        <p className="text-sm" style={{ color: '#888' }}>Gestión de gastos del negocio</p>
                     </div>
-                    <button 
-                    onClick={() => {
-                        setShowCreateModal(false);
-                        setShowEditModal(false);
-                        resetForm();
-                    }}
-                    className="p-2 sm:p-3 rounded-2xl hover:bg-emerald-200 hover:scale-110 transition-all duration-200 group"
-                    >
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 group-hover:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <button onClick={handleAbrirCrearModal}
+                        className="px-5 py-2.5 rounded-lg text-sm font-medium transition-all"
+                        style={{ background: '#222', color: '#fff', border: 'none' }}>
+                        + Nuevo Gasto
                     </button>
-                </div>
-
-                {/* FORM CABECERA - BOTONES MÁS CHICOS IGUAL CUENTAS */}
-                <form className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-end pb-2">
-                <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">📝 Descripción *</label>
-                    <textarea
-                    className="w-full p-3 sm:p-4 text-base border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-emerald-200 focus:border-emerald-500 transition-all resize-vertical min-h-[60px] sm:min-h-[80px]"
-                    value={createForm.descripcion}
-                    onChange={(e) => setCreateForm({ ...createForm, descripcion: e.target.value })}
-                    required
-                    placeholder="Ej: Consumo personal cajero turno noche, Limpieza suministros, etc."
-                    />
-                </div>
-                
-                <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">💳 Tipo de Gasto</label>
-                    <div className="grid grid-cols-2 gap-3">
-                    {[
-                        { key: 'consumo_personal', label: 'Consumo Personal', icon: '👤' },
-                        { key: 'limpieza', label: 'Limpieza', icon: '🧹' },
-                        { key: 'mantenimiento', label: 'Mantenimiento', icon: '🔧' },
-                        { key: 'suministros', label: 'Suministros', icon: '📦' }
-                    ].map(tipo => (
-                        <button
-                        key={tipo.key}
-                        type="button"
-                        onClick={() => setCreateForm({ ...createForm, tipo_gasto: tipo.key })}
-                        className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 ${
-                            createForm.tipo_gasto === tipo.key
-                            ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm'
-                            : 'border-gray-200 bg-white text-gray-500 hover:border-emerald-300'
-                        }`}
-                        >
-                        <span className="text-lg leading-none">{tipo.icon}</span>
-                        <span className="font-medium text-xs">{tipo.label}</span>
-                        </button>
-                    ))}
-                    </div>
-                </div>
-                </form>
-                </div>
-
-                {/* CONTENIDO PRINCIPAL - SCROLL ÚNICO */}
-                <div className="flex-1 min-h-0 overflow-y-auto">
-                
-                <div className="p-6 sm:p-8 border-b-4 border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                    {/* TÍTULO MÁS PEQUEÑO EN MÓVIL */}
-                    <h3 className="text-base sm:text-2xl font-bold flex items-center gap-2 text-emerald-800">
-                    🛍️ Lista de Productos
-                    <span className="text-sm sm:text-lg bg-emerald-200 text-emerald-800 px-3 py-1 rounded-full font-semibold">
-                        {selectedProductos.length} seleccionado{selectedProductos.length !== 1 ? 's' : ''}
-                    </span>
-                    </h3>
                 </div>
 
                 {/* PAGINACIÓN SUPERIOR */}
-                <div className="mb-6 space-y-3">
-                    {productosPagination.totalPages > 1 && (
-                        <div className="flex items-center justify-end gap-2 pb-4 mb-2">
-                        <button
-                            onClick={() => handlePageChange(Math.max(1, productosPage - 1))}
-                            disabled={productosPage === 1}
-                            className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                        >
-                            ‹
-                        </button>
-                        <button
-                            onClick={() => handlePageChange(Math.min(productosPagination.totalPages || 1, productosPage + 1))}
-                            disabled={productosPage === (productosPagination.totalPages || 1)}
-                            className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                        >
-                            ›
-                        </button>
-                        </div>
-                    )}
-                    {/* CATEGORÍAS - Scroll horizontal NATURAL */}
-                        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-                            {/* N/A */}
-                            <button 
-                                onClick={() => handleCategoriaChange('N/A')}
-                                className={`flex-none px-3 py-2 rounded-xl font-semibold text-sm whitespace-nowrap ${
-                                    categoriaSeleccionada === 'N/A'
-                                        ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg'
-                                        : 'bg-white hover:bg-emerald-50 text-gray-700 border border-gray-200 hover:shadow-md'
-                                }`}>
-                                N/A
-                            </button>
-                            
-                            {/* Categorías */}
-                            {categorias.map((cat) => (
-                                <button key={cat.id}
-                                        onClick={() => handleCategoriaChange(cat.codigo)}
-                                        className={`flex-none px-3 py-2 rounded-xl font-semibold text-sm whitespace-nowrap flex items-center gap-1 ${
-                                            categoriaSeleccionada === cat.codigo
-                                                ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg'
-                                                : 'bg-white hover:bg-emerald-50 text-gray-700 border border-gray-200 hover:shadow-md'
-                                        }`}>
-                                    {cat.codigo}
+                {gastosPagination.totalPages > 1 && (
+                    <div className="flex items-center gap-2 mb-6">
+                        <button onClick={() => setGastosPage(Math.max(1, gastosPage - 1))} disabled={gastosPage <= 1}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-40"
+                            style={{ background: '#fff', border: '0.5px solid #e0e0da', color: '#555' }}>‹</button>
+                        {Array.from({ length: Math.min(5, gastosPagination.totalPages) }, (_, i) => {
+                            const pageNum = Math.min(Math.max(1, gastosPage - 2) + i, gastosPagination.totalPages);
+                            return (
+                                <button key={pageNum} onClick={() => setGastosPage(pageNum)}
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-all"
+                                    style={pageNum === gastosPage ? { background: '#222', color: '#fff' } : { background: '#fff', border: '0.5px solid #e0e0da', color: '#555' }}>
+                                    {pageNum}
                                 </button>
-                            ))}
-                        </div>
-                </div>
+                            );
+                        })}
+                        <button onClick={() => setGastosPage(Math.min(gastosPagination.totalPages, gastosPage + 1))} disabled={gastosPage >= gastosPagination.totalPages}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-40"
+                            style={{ background: '#fff', border: '0.5px solid #e0e0da', color: '#555' }}>›</button>
+                        <span className="text-xs ml-1" style={{ color: '#aaa' }}>Pág. {gastosPage} de {gastosPagination.totalPages}</span>
+                    </div>
+                )}
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                    {productos.map(producto => {
-                    // Calcular cantidad seleccionada de este producto
-                    const cantidadSeleccionada = selectedProductos.filter(p => p.id === producto.id)
-                        .reduce((total, p) => total + (p.cantidad || 1), 0);
-                    
-                    return (
-                        <button
-                        key={producto.id}
-                        onClick={() => handleAgregarProducto(producto)}
-                        disabled={producto.cantidad_disponible === 0}
-                        className="group p-4 sm:p-5 border-3 border-emerald-300 rounded-2xl hover:border-emerald-500 hover:shadow-2xl hover:shadow-emerald-300/50 transition-all duration-300 hover:scale-105 bg-gradient-to-br from-white to-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed h-full flex flex-col items-start gap-2 shadow-lg hover:shadow-xl relative overflow-hidden"
-                        >
-                        {/* BADGE SELECCIONADO CON CANTIDAD */}
-                        {cantidadSeleccionada > 0 && (
-                            <div className="absolute top-2 right-2 flex items-center gap-1 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">
-                            <span className="text-sm">✓</span>
-                            <span>{cantidadSeleccionada}</span>
+                {/* GRID GASTOS */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                    {gastos.map(gasto => (
+                        <div key={gasto.id} className="rounded-2xl p-5 transition-all duration-200"
+                            style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 2px 16px rgba(0,0,0,0.05)' }}>
+
+                            {/* Cabecera */}
+                            <div className="flex items-center justify-between mb-3">
+                                <p className="text-sm font-medium" style={{ color: '#111' }}>Gasto #{gasto.id}</p>
+                                <span className="text-xs px-2 py-0.5 rounded-md"
+                                    style={gasto.estado === 'aprobado'
+                                        ? { background: '#f4faf4', color: '#2a7a2a', border: '0.5px solid #c8e6c8' }
+                                        : gasto.estado === 'rechazado'
+                                        ? { background: '#fdf4f4', color: '#a03030', border: '0.5px solid #f0d0d0' }
+                                        : { background: '#fdfaf4', color: '#7a6a2a', border: '0.5px solid #e6d8a0' }}>
+                                    {gasto.estado === 'aprobado' ? 'Aprobado' : gasto.estado === 'rechazado' ? 'Rechazado' : 'Pendiente'}
+                                </span>
                             </div>
-                        )}
-                        
-                        <div className="font-bold text-sm sm:text-base line-clamp-2 group-hover:text-emerald-700 leading-tight h-12 z-10 relative pr-8 sm:pr-0">
-                            {producto.descripcion}
+
+                            {/* Info */}
+                            <div className="space-y-1.5 mb-4">
+                                <p className="text-sm font-medium line-clamp-2" style={{ color: '#333' }}>{gasto.descripcion}</p>
+                                <p className="text-xs" style={{ color: '#aaa' }}>{gasto.tipo_gasto?.replace('_', ' ').toUpperCase()}</p>
+                                <p className="text-xs" style={{ color: '#bbb' }}>{formatFechaUTCWithTime(gasto.fecha_creado)}</p>
+                            </div>
+
+                            {/* Total */}
+                            <p className="text-2xl font-medium mb-4" style={{ color: '#a03030' }}>-${formatDinero(gasto.total)}</p>
+
+                            {/* Botones */}
+                            <div className="flex gap-2">
+                                {gasto.estado === 'pendiente' && (
+                                    <>
+                                    <button onClick={() => handleAprobarGasto(gasto.id)} disabled={updatingGasto === gasto.id}
+                                        className="flex-1 py-2 rounded-lg text-xs font-medium transition-all disabled:opacity-40"
+                                        style={{ background: '#f4faf4', color: '#2a7a2a', border: '0.5px solid #c8e6c8' }}>
+                                        Aprobar
+                                    </button>
+                                    <button onClick={() => handleRechazarGasto(gasto.id)} disabled={updatingGasto === gasto.id}
+                                        className="flex-1 py-2 rounded-lg text-xs font-medium transition-all disabled:opacity-40"
+                                        style={{ background: '#fdf4f4', color: '#a03030', border: '0.5px solid #f0d0d0' }}>
+                                        Rechazar
+                                    </button>
+                                    </>
+                                )}
+                                <button onClick={() => handleAbrirEditar(gasto)}
+                                    className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
+                                    style={{ background: '#f5f5f0', color: '#555', border: '0.5px solid #e0e0da' }}>
+                                    Detalle
+                                </button>
+                            </div>
                         </div>
-                        <div className="text-sm sm:text-base text-gray-600 z-10 relative pr-8 sm:pr-0">{producto.presentacion}</div>
-                        <div className="font-bold text-emerald-600 text-lg sm:text-xl w-full text-left z-10 relative pr-8 sm:pr-0">
-                            ${formatDinero(producto.precio_compra)}
-                        </div>
-                        <div className="text-xs text-gray-500 flex items-center gap-1 z-10 relative pr-8 sm:pr-0">
-                            📦 <span className="font-semibold">{Math.trunc(producto.cantidad_disponible).toString()}</span>
-                        </div>
-                        </button>
-                    );
-                    })}
+                    ))}
                 </div>
 
                 {/* PAGINACIÓN INFERIOR */}
-                {productosPagination.totalPages > 1 && (
-                    <div className="flex items-center justify-end gap-2 pt-4 mb-2">
-                    <button
-                        onClick={() => handlePageChange(Math.max(1, productosPage - 1))}
-                        disabled={productosPage === 1}
-                        className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                    >
-                        ‹
-                    </button>
-                    <button
-                        onClick={() => handlePageChange(Math.min(productosPagination.totalPages || 1, productosPage + 1))}
-                        disabled={productosPage === (productosPagination.totalPages || 1)}
-                        className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center"
-                    >
-                        ›
-                    </button>
+                {gastosPagination.totalPages > 1 && (
+                    <div className="flex items-center gap-2 mb-6">
+                        <button onClick={() => setGastosPage(Math.max(1, gastosPage - 1))} disabled={gastosPage <= 1}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-40"
+                            style={{ background: '#fff', border: '0.5px solid #e0e0da', color: '#555' }}>‹</button>
+                        {Array.from({ length: Math.min(5, gastosPagination.totalPages) }, (_, i) => {
+                            const pageNum = Math.min(Math.max(1, gastosPage - 2) + i, gastosPagination.totalPages);
+                            return (
+                                <button key={pageNum} onClick={() => setGastosPage(pageNum)}
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-all"
+                                    style={pageNum === gastosPage ? { background: '#222', color: '#fff' } : { background: '#fff', border: '0.5px solid #e0e0da', color: '#555' }}>
+                                    {pageNum}
+                                </button>
+                            );
+                        })}
+                        <button onClick={() => setGastosPage(Math.min(gastosPagination.totalPages, gastosPage + 1))} disabled={gastosPage >= gastosPagination.totalPages}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-40"
+                            style={{ background: '#fff', border: '0.5px solid #e0e0da', color: '#555' }}>›</button>
                     </div>
                 )}
-                </div>
 
-                {/* DETALLE DE GASTOS */}
-                {selectedProductos.length > 0 && (
-                <div className="p-6 sm:p-8 border-b border-gray-100 bg-gray-50">
-                    <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-gray-800">
-                    📋 Detalle de Gastos ({selectedProductos.length})
-                    </h3>
-                    <div className="space-y-4">
-                    {selectedProductos.map(producto => (
-                        <div key={producto.id} className="bg-white p-5 rounded-2xl border shadow-sm hover:shadow-md transition-all flex flex-col lg:flex-row lg:items-center lg:gap-6">
-                        
-                        {/* COLUMNA IZQUIERDA - Descripción */}
-                        <div className="flex-1 mb-6 lg:mb-0 lg:mr-6">
-                            <p className="font-bold text-lg text-gray-900 line-clamp-2">{producto.descripcion}</p>
-                            <p className="text-base text-gray-600 mt-1">{producto.presentacion}</p>
-                        </div>
+                {/* VACÍO */}
+                {gastos.length === 0 && !loading && (
+                    <div className="text-center py-20">
+                        <p className="text-sm mb-4" style={{ color: '#aaa' }}>No hay gastos operativos registrados</p>
+                        <button onClick={() => setShowCreateModal(true)}
+                            className="px-5 py-2.5 rounded-lg text-sm font-medium"
+                            style={{ background: '#222', color: '#fff' }}>
+                            + Nuevo Gasto Operativo
+                        </button>
+                    </div>
+                )}
+            </div>
 
-                        {/* CONTROLES */}
-                        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-4 w-full lg:w-auto order-last lg:order-none">
-                            <div className="flex items-center justify-center gap-3 bg-white p-2 rounded-xl border shadow-sm">
-                            <button
-                                onClick={() => handleDisminuirCantidad(producto.id)}
-                                className="w-12 h-12 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl flex items-center justify-center font-bold hover:scale-110 transition-all"
-                            >
-                                -
-                            </button>
-                            <span className="w-20 p-2 border border-gray-300 rounded-xl text-center font-bold text-base bg-white shadow-sm">
-                                {producto.cantidad}
-                            </span>
-                            <button
-                                onClick={() => handleAumentarCantidad(producto.id)}
-                                className="w-12 h-12 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl flex items-center justify-center font-bold hover:scale-110 transition-all shadow-md"
-                            >
-                                +
-                            </button>
+            {/* ── MODAL CREAR / EDITAR ─────────────────────────────── */}
+            {(showCreateModal || showEditModal) && (
+                <>
+                <div className="fixed inset-0 z-[999]" style={{ background: 'rgba(0,0,0,0.4)' }}
+                    onClick={() => { setShowCreateModal(false); setShowEditModal(false); resetForm(); }} />
+                <div className="fixed inset-0 z-[1000] p-4 flex items-center justify-center">
+                    <div className="w-full max-w-5xl max-h-[95vh] flex flex-col rounded-2xl overflow-hidden"
+                        style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 8px 40px rgba(0,0,0,0.12)' }}>
+
+                        {/* Header fijo */}
+                        <div className="px-6 py-4 flex-shrink-0" style={{ borderBottom: '0.5px solid #f0f0ea' }}>
+                            <div className="flex items-center justify-between mb-4">
+                                <div>
+                                    <h2 className="text-base font-medium" style={{ color: '#111' }}>
+                                        {showEditModal ? 'Editar Gasto' : 'Nuevo Gasto Operativo'}
+                                    </h2>
+                                    <p className="text-xs" style={{ color: '#aaa' }}>
+                                        Total: <span className="font-medium" style={{ color: '#a03030' }}>-${formatDinero(calcularTotal())}</span>
+                                        {selectedProductos.length > 0 && ` · ${selectedProductos.length} productos`}
+                                    </p>
+                                </div>
+                                <button onClick={() => { setShowCreateModal(false); setShowEditModal(false); resetForm(); }}
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#f5f5f0' }}>
+                                    <svg className="w-4 h-4" style={{ color: '#666' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
                             </div>
-                            
-                            <div className="flex items-end lg:items-center gap-3">
-                            <span className="font-bold text-2xl text-emerald-600 min-w-[80px] text-right lg:text-left">
-                                -${formatDinero(producto.precio_compra * producto.cantidad)}
-                            </span>
-                            <button
-                                onClick={() => handleBorrarProducto(producto.id)}
-                                className="w-12 h-12 bg-red-500 hover:bg-red-600 text-white rounded-xl flex items-center justify-center font-bold hover:scale-110 transition-all shadow-md"
-                            >
-                                🗑️
-                            </button>
+
+                            {/* Campos cabecera */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>DESCRIPCIÓN *</label>
+                                    <textarea rows="2" value={createForm.descripcion} required
+                                        onChange={(e) => setCreateForm({ ...createForm, descripcion: e.target.value })}
+                                        placeholder="Ej: Consumo personal cajero turno noche..."
+                                        className="w-full px-4 py-2.5 rounded-lg text-sm outline-none resize-none"
+                                        style={{ background: '#fafafa', border: '0.5px solid #e0e0da', color: '#222' }} />
+                                </div>
+                                <div>
+                                    <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>TIPO DE GASTO</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {[
+                                            { key: 'consumo_personal', label: 'Consumo Personal' },
+                                            { key: 'limpieza',         label: 'Limpieza' },
+                                            { key: 'mantenimiento',    label: 'Mantenimiento' },
+                                            { key: 'suministros',      label: 'Suministros' },
+                                        ].map(tipo => (
+                                            <button key={tipo.key} type="button" onClick={() => setCreateForm({ ...createForm, tipo_gasto: tipo.key })}
+                                                className="py-2 rounded-lg text-xs font-medium transition-all"
+                                                style={createForm.tipo_gasto === tipo.key
+                                                    ? { background: '#222', color: '#fff', border: '0.5px solid #222' }
+                                                    : { background: '#f5f5f0', color: '#666', border: '0.5px solid #e0e0da' }}>
+                                                {tipo.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        {/* Contenido scrollable */}
+                        <div className="flex-1 overflow-y-auto min-h-0">
+
+                            {/* Grid productos */}
+                            <div className="p-6" style={{ borderBottom: '0.5px solid #f0f0ea' }}>
+                                <p className="text-sm font-medium mb-4" style={{ color: '#111' }}>
+                                    Productos
+                                    {selectedProductos.length > 0 && <span className="ml-2 text-xs px-2 py-0.5 rounded-full" style={{ background: '#f0f0ea', color: '#666' }}>{selectedProductos.length} seleccionados</span>}
+                                </p>
+
+                                {/* Paginación productos superior */}
+                                {productosPagination.totalPages > 1 && (
+                                    <div className="flex gap-2 mb-4">
+                                        <button onClick={() => handlePageChange(Math.max(1, productosPage - 1))} disabled={productosPage === 1}
+                                            className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-40"
+                                            style={{ background: '#f5f5f0', border: '0.5px solid #e0e0da', color: '#555' }}>‹</button>
+                                        <button onClick={() => handlePageChange(Math.min(productosPagination.totalPages, productosPage + 1))} disabled={productosPage === productosPagination.totalPages}
+                                            className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-40"
+                                            style={{ background: '#f5f5f0', border: '0.5px solid #e0e0da', color: '#555' }}>›</button>
+                                    </div>
+                                )}
+
+                                {/* Categorías */}
+                                <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
+                                    <button onClick={() => handleCategoriaChange('N/A')}
+                                        className="flex-none px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all"
+                                        style={categoriaSeleccionada === 'N/A' ? { background: '#222', color: '#fff' } : { background: '#f5f5f0', color: '#666', border: '0.5px solid #e0e0da' }}>
+                                        Todos
+                                    </button>
+                                    {categorias.map((cat) => (
+                                        <button key={cat.id} onClick={() => handleCategoriaChange(cat.codigo)}
+                                            className="flex-none px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all"
+                                            style={categoriaSeleccionada === cat.codigo ? { background: '#222', color: '#fff' } : { background: '#f5f5f0', color: '#666', border: '0.5px solid #e0e0da' }}>
+                                            {cat.codigo}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Grid */}
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                                    {productos.map(producto => {
+                                        const cantidadSeleccionada = selectedProductos.filter(p => p.id === producto.id).reduce((t, p) => t + (p.cantidad || 1), 0);
+                                        return (
+                                            <button key={producto.id} onClick={() => handleAgregarProducto(producto)} disabled={producto.cantidad_disponible === 0}
+                                                className="p-3 rounded-xl text-left transition-all duration-200 disabled:opacity-40 relative"
+                                                style={cantidadSeleccionada > 0
+                                                    ? { background: '#222', border: '0.5px solid #222' }
+                                                    : { background: '#fff', border: '0.5px solid #e0e0da' }}>
+                                                {cantidadSeleccionada > 0 && (
+                                                    <span className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff' }}>{cantidadSeleccionada}</span>
+                                                )}
+                                                <p className="text-xs font-medium mb-1 line-clamp-2 pr-6" style={{ color: cantidadSeleccionada > 0 ? '#fff' : '#222' }}>{producto.descripcion}</p>
+                                                <p className="text-xs mb-1" style={{ color: cantidadSeleccionada > 0 ? 'rgba(255,255,255,0.6)' : '#aaa' }}>{producto.presentacion}</p>
+                                                <p className="text-sm font-medium" style={{ color: cantidadSeleccionada > 0 ? '#fff' : '#111' }}>${formatDinero(producto.precio_compra)}</p>
+                                                <p className="text-xs mt-1" style={{ color: cantidadSeleccionada > 0 ? 'rgba(255,255,255,0.5)' : '#ccc' }}>Stock {Math.trunc(producto.cantidad_disponible)}</p>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Paginación inferior */}
+                                {productosPagination.totalPages > 1 && (
+                                    <div className="flex gap-2 mt-4">
+                                        <button onClick={() => handlePageChange(Math.max(1, productosPage - 1))} disabled={productosPage === 1}
+                                            className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-40"
+                                            style={{ background: '#f5f5f0', border: '0.5px solid #e0e0da', color: '#555' }}>‹</button>
+                                        <button onClick={() => handlePageChange(Math.min(productosPagination.totalPages, productosPage + 1))} disabled={productosPage === productosPagination.totalPages}
+                                            className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-40"
+                                            style={{ background: '#f5f5f0', border: '0.5px solid #e0e0da', color: '#555' }}>›</button>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Detalle productos seleccionados */}
+                            {selectedProductos.length > 0 && (
+                                <div className="p-6" style={{ background: '#fafafa' }}>
+                                    <p className="text-sm font-medium mb-4" style={{ color: '#111' }}>Detalle ({selectedProductos.length})</p>
+                                    <div className="space-y-3">
+                                        {selectedProductos.map(producto => (
+                                            <div key={producto.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl"
+                                                style={{ background: '#fff', border: '0.5px solid #e0e0da' }}>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium truncate" style={{ color: '#222' }}>{producto.descripcion}</p>
+                                                    <p className="text-xs" style={{ color: '#aaa' }}>{producto.presentacion}</p>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex items-center gap-2 rounded-lg p-1" style={{ background: '#f5f5f0', border: '0.5px solid #e0e0da' }}>
+                                                        <button onClick={() => handleDisminuirCantidad(producto.id)}
+                                                            className="w-7 h-7 rounded-md flex items-center justify-center text-sm"
+                                                            style={{ background: '#fff', color: '#555' }}>-</button>
+                                                        <span className="w-10 text-center text-sm font-medium" style={{ color: '#222' }}>{producto.cantidad}</span>
+                                                        <button onClick={() => handleAumentarCantidad(producto.id)}
+                                                            className="w-7 h-7 rounded-md flex items-center justify-center text-sm"
+                                                            style={{ background: '#222', color: '#fff' }}>+</button>
+                                                    </div>
+                                                    <span className="text-sm font-medium min-w-[70px] text-right" style={{ color: '#a03030' }}>
+                                                        -${formatDinero(producto.precio_compra * producto.cantidad)}
+                                                    </span>
+                                                    <button onClick={() => handleBorrarProducto(producto.id)}
+                                                        className="w-7 h-7 rounded-lg flex items-center justify-center text-xs"
+                                                        style={{ background: '#fdf4f4', color: '#a03030', border: '0.5px solid #f0d0d0' }}>✕</button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                    ))}
+
+                        {/* Footer */}
+                        <div className="px-6 py-4 flex gap-3 justify-end" style={{ borderTop: '0.5px solid #f0f0ea' }}>
+                            <button type="button" onClick={() => { setShowCreateModal(false); setShowEditModal(false); resetForm(); }}
+                                className="px-5 py-2.5 rounded-lg text-sm font-medium"
+                                style={{ background: '#f5f5f0', color: '#555', border: '0.5px solid #e0e0da' }}>
+                                Cancelar
+                            </button>
+                            <button onClick={showEditModal ? handleEditarGasto : handleCrearGasto}
+                                disabled={!createForm.descripcion || selectedProductos.length === 0 || creatingGasto || editingGastoLoading || (showEditModal && editingGasto?.estado !== 'pendiente')}
+                                className="px-5 py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 flex items-center gap-2"
+                                style={{ background: '#222', color: '#fff', border: 'none' }}>
+                                {creatingGasto || editingGastoLoading
+                                    ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Guardando...</>
+                                    : showEditModal
+                                        ? `Guardar Cambios · ${selectedProductos.length}`
+                                        : `Registrar Gasto · ${selectedProductos.length}`
+                                }
+                            </button>
+                        </div>
                     </div>
                 </div>
-                )}
+                </>
+            )}
 
-                </div>
+            {/* ── MODAL ELIMINAR ───────────────────────────────────── */}
+            {showDeleteModal && (
+                <>
+                <div className="fixed inset-0 z-[999]" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={() => setShowDeleteModal(false)} />
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+                    <div className="w-full max-w-sm rounded-2xl p-6 text-center"
+                        style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 8px 40px rgba(0,0,0,0.12)' }}>
 
-                {/* BOTONES MÁS PEQUEÑOS EN MÓVIL */}
-                <div className="p-4 sm:p-8 bg-gradient-to-r from-emerald-50 to-teal-50 border-t border-gray-100 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-center">
-                <button
-                    type="button"
-                    onClick={() => {
-                        setShowCreateModal(false);
-                        setShowEditModal(false);
-                        resetForm();
-                    }}
-                    className="flex-1 sm:flex-none w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 border border-gray-300 text-gray-700 font-semibold text-sm sm:text-base rounded-xl sm:rounded-2xl hover:bg-gray-50 hover:shadow-md transition-all duration-200"
-                >
-                    Cancelar
-                </button>
-                <button
-                onClick={showEditModal ? handleEditarGasto : handleCrearGasto}
-                disabled={
-                    !createForm.descripcion || 
-                    selectedProductos.length === 0 || 
-                    creatingGasto || 
-                    editingGastoLoading ||
-                    (showEditModal && editingGasto?.estado !== 'pendiente')  // ✅ NUEVA CONDICIÓN
-                }
-                className="flex-1 sm:flex-none w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 disabled:shadow-none text-sm sm:text-base"
-                >
-                {creatingGasto || editingGastoLoading ? (
-                    <>
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                    </svg>
-                    Guardando...
-                    </>
-                ) : (
-                    <>
-                    {showEditModal ? (
-                        <>
-                        ✏️ {selectedProductos.length} producto{selectedProductos.length !== 1 ? 's' : ''}
-                        </>
-                    ) : (
-                        <>
-                        💸 Registrar Gasto 
-                        <span className="text-base sm:text-lg font-bold">{selectedProductos.length}</span>
-                        </>
-                    )}
-                    </>
-                )}
-                </button>
-                </div>
-            </div>
-            </div>
-        </>
-        )}
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 mx-auto"
+                            style={{ background: '#fdf4f4', border: '0.5px solid #f0d0d0' }}>
+                            <svg className="w-5 h-5" style={{ color: '#a03030' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </div>
 
-        {/* MODAL ELIMINAR - TAMAÑO VISTA */}
-        {showDeleteModal && (
-            <>
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[999]" onClick={() => setShowDeleteModal(false)} />
-            <div className="fixed inset-0 z-[1000] p-4 flex items-center justify-center">
-                <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 animate-in slide-in-from-bottom-4 duration-300">
-                <div className="text-center mb-8">
-                    <div className="w-20 h-20 bg-red-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                    <svg className="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
+                        <h3 className="text-base font-medium mb-2" style={{ color: '#111' }}>Eliminar Gasto</h3>
+                        <p className="text-xs mb-1" style={{ color: '#888' }}>Gasto #{deletingGasto?.id}</p>
+                        <p className="text-sm font-medium mb-1" style={{ color: '#a03030' }}>-${formatDinero(deletingGasto?.total)}</p>
+                        <p className="text-xs mb-6" style={{ color: '#bbb' }}>Esta acción no se puede deshacer.</p>
+
+                        <div className="flex gap-3">
+                            <button onClick={() => setShowDeleteModal(false)}
+                                className="flex-1 py-2.5 rounded-lg text-sm font-medium"
+                                style={{ background: '#f5f5f0', color: '#555', border: '0.5px solid #e0e0da' }}>
+                                Cancelar
+                            </button>
+                            <button onClick={handleEliminarGasto}
+                                className="flex-1 py-2.5 rounded-lg text-sm font-medium"
+                                style={{ background: '#a03030', color: '#fff', border: 'none' }}>
+                                Eliminar
+                            </button>
+                        </div>
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Eliminar Gasto</h3>
-                    <p className="text-lg text-gray-600 mb-4">
-                    ¿Estás seguro de eliminar el gasto <br />
-                    <span className="font-bold text-emerald-600">#{deletingGasto?.id}</span>?
-                    </p>
-                    <div className="text-3xl font-black text-red-600 mb-2">-${formatDinero(deletingGasto?.total)}</div>
-                    <p className="text-sm text-gray-500">Esta acción no se puede deshacer</p>
                 </div>
-                
-                <div className="flex gap-4 pt-4">
-                    <button
-                    onClick={() => setShowDeleteModal(false)}
-                    className="flex-1 py-3 px-6 border border-gray-300 text-gray-700 font-semibold rounded-2xl hover:bg-gray-50 transition-all"
-                    >
-                    Cancelar
-                    </button>
-                    <button
-                    onClick={handleEliminarGasto}
-                    className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-3 px-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2"
-                    >
-                    🗑️ Eliminar
-                    </button>
-                </div>
-                </div>
-            </div>
-            </>
-        )}
+                </>
+            )}
         </div>
     );
 };
