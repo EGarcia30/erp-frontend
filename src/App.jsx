@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import Productos from './pages/Productos';
+import Categorias from './pages/Categorias';
 import Compras from "./pages/Compras";
 import Cuentas from "./pages/Cuentas";
 import GastosOperativos from "./pages/GastosOperativos";
@@ -17,6 +18,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showInventoryDropdown, setShowInventoryDropdown] = useState(false);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -63,14 +65,28 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Cerrar dropdowns al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('[data-dropdown]')) {
+        setShowInventoryDropdown(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
   const navLinks = [
     { to: '/dashboard',        label: 'Dashboard',         icon: '📊' },
-    { to: '/productos',        label: 'Productos',         icon: '📦' },
+    { to: '/inventario',       label: 'Inventario',        icon: '📦', type: 'dropdown', children: [
+      { to: '/categorias', label: 'Categorías' },
+      { to: '/productos',  label: 'Productos' },
+    ]},
     // { to: '/mesas',         label: 'Mesas',             icon: '🪑' },
     { to: '/compras',          label: 'Compras',           icon: '🛒' },
     { to: '/promociones',      label: 'Promociones',       icon: '🎉' },
     { to: '/historial',        label: 'Historial',         icon: '📋' },
-    { to: '/cuentas',          label: 'Ventas',           icon: '💰' },
+    { to: '/cuentas',          label: 'Ventas',            icon: '💰' },
     { to: '/gastos-operativos',label: 'Gastos Operativos', icon: '💸' },
   ];
 
@@ -108,20 +124,57 @@ function App() {
 
               {/* LINKS DESKTOP */}
               <div className="hidden md:flex items-center gap-1">
-                {navLinks.map(({ to, label, icon }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    title={label}
-                    className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-                    style={({ isActive }) => isActive
-                      ? { background: '#222', color: '#fff' }
-                      : { color: '#666', background: 'transparent' }
-                    }
-                  >
-                    {icon}
-                  </NavLink>
-                ))}
+                {navLinks.map(({ to, label, icon, type, children }) => {
+                  if (type === 'dropdown') {
+                    return (
+                      <div key={to} className="relative" data-dropdown>
+                        <button
+                          onClick={() => setShowInventoryDropdown(!showInventoryDropdown)}
+                          className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1"
+                          style={{ color: '#666', background: 'transparent' }}
+                        >
+                          {icon}
+                          <svg className="w-2.5 h-2.5 transition-transform" style={{ transform: showInventoryDropdown ? 'rotate(180deg)' : 'rotate(0deg)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {showInventoryDropdown && (
+                          <div className="absolute top-full left-0 mt-1 w-40 rounded-xl py-2 z-50" style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }} data-dropdown>
+                            {children.map((child) => (
+                              <NavLink
+                                key={child.to}
+                                to={child.to}
+                                className="flex items-center gap-2 px-4 py-2.5 text-sm transition-all duration-200"
+                                style={({ isActive }) => isActive
+                                  ? { background: '#222', color: '#fff' }
+                                  : { color: '#444', background: 'transparent' }
+                                }
+                                onClick={() => setShowInventoryDropdown(false)}
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'currentColor', opacity: 0.4 }}></span>
+                                {child.label}
+                              </NavLink>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+                  return (
+                    <NavLink
+                      key={to}
+                      to={to}
+                      title={label}
+                      className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                      style={({ isActive }) => isActive
+                        ? { background: '#222', color: '#fff' }
+                        : { color: '#666', background: 'transparent' }
+                      }
+                    >
+                      {icon}
+                    </NavLink>
+                  );
+                })}
               </div>
 
               {/* USUARIO + HAMBURGUESA */}
@@ -215,20 +268,48 @@ function App() {
             {isMobileMenuOpen && (
               <div className="md:hidden absolute top-full left-0 right-0 z-40" style={{ background: '#fff', borderTop: '0.5px solid #e0e0da', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
                 <div className="px-4 py-3 space-y-1">
-                  {navLinks.map(({ to, label, icon }) => (
-                    <NavLink
-                      key={to}
-                      to={to}
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200"
-                      style={({ isActive }) => isActive
-                        ? { background: '#222', color: '#fff' }
-                        : { color: '#555', background: 'transparent' }
-                      }
-                      onClick={handleMobileMenuClick}
-                    >
-                      <span>{icon}</span> {label}
-                    </NavLink>
-                  ))}
+                  {navLinks.map(({ to, label, icon, type, children }) => {
+                    if (type === 'dropdown') {
+                      return (
+                        <div key={to} className="space-y-1">
+                          <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium" style={{ color: '#555', background: 'transparent' }}>
+                            <span>{icon}</span> {label}
+                          </div>
+                          <div className="pl-4 space-y-1">
+                            {children.map((child) => (
+                              <NavLink
+                                key={child.to}
+                                to={child.to}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm transition-all duration-200"
+                                style={({ isActive }) => isActive
+                                  ? { background: '#222', color: '#fff' }
+                                  : { color: '#555', background: 'transparent' }
+                                }
+                                onClick={handleMobileMenuClick}
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'currentColor', opacity: 0.4 }}></span>
+                                {child.label}
+                              </NavLink>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+                    return (
+                      <NavLink
+                        key={to}
+                        to={to}
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200"
+                        style={({ isActive }) => isActive
+                          ? { background: '#222', color: '#fff' }
+                          : { color: '#555', background: 'transparent' }
+                        }
+                        onClick={handleMobileMenuClick}
+                      >
+                        <span>{icon}</span> {label}
+                      </NavLink>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -240,6 +321,8 @@ function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/cuentas" />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/inventario" element={<Navigate to="/categorias" />} />
+            <Route path="/categorias" element={<Categorias />} />
             <Route path="/productos" element={<Productos />} />
             {/* <Route path="/mesas" element={<Mesas />} /> */}
             <Route path="/compras" element={<Compras />} />

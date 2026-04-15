@@ -249,15 +249,12 @@ const Promociones = () => {
         return producto ? producto.presentacion : `#${productoId}`;
     };
 
-    // Promociones.jsx — fragmento return (reemplaza el return completo)
-// El resto del componente (estados, handlers, fetches) permanece igual.
-
     return (
         <div className="min-h-screen py-8 px-4 lg:px-8 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #f8f8f6 0%, #eeeee8 40%, #e8ede8 100%)' }}>
 
             {/* Círculos decorativos */}
-            <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full pointer-events-none" style={{ background: 'rgba(163,181,163,0.12)' }} />
-            <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full pointer-events-none" style={{ background: 'rgba(163,181,163,0.08)' }} />
+            <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full pointer-events-none" style={{ background: 'rgba(163,181,163,0.12)' }}></div>
+            <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full pointer-events-none" style={{ background: 'rgba(163,181,163,0.08)' }} ></div>
 
             <div className="max-w-7xl mx-auto relative z-10">
 
@@ -323,80 +320,82 @@ const Promociones = () => {
 
                 {/* GRID PROMOCIONES */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6 min-h-[200px]">
-                    {loading ? (
+                    {
+                        loading ? (
                         <div className="col-span-full flex items-center justify-center py-20">
                             <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-800 rounded-full animate-spin" />
                         </div>
-                    ) : promociones.length === 0 ? (
-                        <div className="col-span-full text-center py-20">
-                            <p className="text-sm mb-4" style={{ color: '#aaa' }}>No hay promociones registradas</p>
-                            <button onClick={() => setShowCreateModal(true)} disabled={loading}
-                                className="px-5 py-2.5 rounded-lg text-sm font-medium"
-                                style={{ background: '#222', color: '#fff' }}>
-                                + Crear Promoción
-                            </button>
-                        </div>
-                    ) : (
-                        promociones.map((promocion) => (
-                            <div key={promocion.id} className="rounded-2xl p-5 flex flex-col transition-all duration-200"
-                                style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 2px 16px rgba(0,0,0,0.05)' }}>
+                        ) : promociones.length === 0 ? (
+                            <div className="col-span-full text-center py-20">
+                                <p className="text-sm mb-4" style={{ color: '#aaa' }}>No hay promociones registradas</p>
+                                <button onClick={() => setShowCreateModal(true)} disabled={loading}
+                                    className="px-5 py-2.5 rounded-lg text-sm font-medium"
+                                    style={{ background: '#222', color: '#fff' }}>
+                                    + Crear Promoción
+                                </button>
+                            </div>
+                        ) : (
+                            promociones.map((promocion) => (
+                                <div key={promocion.id} className="rounded-2xl p-5 flex flex-col transition-all duration-200"
+                                    style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 2px 16px rgba(0,0,0,0.05)' }}>
 
-                                {/* Cabecera */}
-                                <div className="flex items-start justify-between mb-3 gap-2">
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="text-sm font-medium leading-tight line-clamp-1 mb-1" style={{ color: '#111' }}>{promocion.nombre_promocion}</h3>
-                                        <p className="text-xs truncate" style={{ color: '#aaa' }}>
-                                            {getProductoNombre(promocion.producto_id)} {getProductoPresentacion(promocion.producto_id)}
-                                        </p>
-                                    </div>
-                                    <span className="flex-shrink-0 text-xs px-2 py-0.5 rounded-md"
-                                        style={promocion.activo
-                                            ? { background: '#f4faf4', color: '#2a7a2a', border: '0.5px solid #c8e6c8' }
-                                            : { background: '#fdf4f4', color: '#a03030', border: '0.5px solid #f0d0d0' }}>
-                                        {promocion.activo ? 'Activo' : 'Inactivo'}
-                                    </span>
-                                </div>
-
-                                {/* Precio */}
-                                <div className="flex-1 flex flex-col justify-center mb-4">
-                                    <div className="p-3 rounded-xl text-center" style={{ background: '#f5f5f0', border: '0.5px solid #e8e8e2' }}>
-                                        <p className="text-xs mb-1" style={{ color: '#aaa' }}>Precio promoción</p>
-                                        <p className="text-2xl font-medium" style={{ color: '#111' }}>${formatDinero(promocion.nuevo_precio_venta)}</p>
-                                    </div>
-                                </div>
-
-                                {/* Fechas */}
-                                <div className="space-y-1.5 mb-4">
-                                    <div className="flex justify-between text-xs">
-                                        <span style={{ color: '#aaa' }}>Inicio</span>
-                                        <span style={{ color: '#555' }}>{promocion.fecha_inicio ? formatFechaUTC(promocion.fecha_inicio) : 'N/A'}</span>
-                                    </div>
-                                    <div className="flex justify-between text-xs">
-                                        <span style={{ color: '#aaa' }}>Fin</span>
-                                        <span style={{ color: new Date(promocion.fecha_fin) < new Date() ? '#a03030' : '#555' }}>
-                                            {promocion.fecha_fin ? formatFechaUTC(promocion.fecha_fin) : 'N/A'}
+                                    {/* Cabecera */}
+                                    <div className="flex items-start justify-between mb-3 gap-2">
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-sm font-medium leading-tight line-clamp-1 mb-1" style={{ color: '#111' }}>{promocion.nombre_promocion}</h3>
+                                            <p className="text-xs truncate" style={{ color: '#aaa' }}>
+                                                {getProductoNombre(promocion.producto_id)} {getProductoPresentacion(promocion.producto_id)}
+                                            </p>
+                                        </div>
+                                        <span className="flex-shrink-0 text-xs px-2 py-0.5 rounded-md"
+                                            style={promocion.activo
+                                                ? { background: '#f4faf4', color: '#2a7a2a', border: '0.5px solid #c8e6c8' }
+                                                : { background: '#fdf4f4', color: '#a03030', border: '0.5px solid #f0d0d0' }}>
+                                            {promocion.activo ? 'Activo' : 'Inactivo'}
                                         </span>
                                     </div>
-                                </div>
 
-                                {/* Botones */}
-                                <div className="flex gap-2 pt-3" style={{ borderTop: '0.5px solid #f0f0ea' }}>
-                                    <button onClick={() => openEditModal(promocion)}
-                                        className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
-                                        style={{ background: '#f0f4ff', color: '#3060a0', border: '0.5px solid #c8d8f0' }}>
-                                        Editar
-                                    </button>
-                                    <button onClick={() => openDeleteModal(promocion)}
-                                        className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
-                                        style={promocion.activo
-                                            ? { background: '#fdf4f4', color: '#a03030', border: '0.5px solid #f0d0d0' }
-                                            : { background: '#f4faf4', color: '#2a7a2a', border: '0.5px solid #c8e6c8' }}>
-                                        {promocion.activo ? 'Desactivar' : 'Activar'}
-                                    </button>
+                                    {/* Precio */}
+                                    <div className="flex-1 flex flex-col justify-center mb-4">
+                                        <div className="p-3 rounded-xl text-center" style={{ background: '#f5f5f0', border: '0.5px solid #e8e8e2' }}>
+                                            <p className="text-xs mb-1" style={{ color: '#aaa' }}>Precio promoción</p>
+                                            <p className="text-2xl font-medium" style={{ color: '#111' }}>${formatDinero(promocion.nuevo_precio_venta)}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Fechas */}
+                                    <div className="space-y-1.5 mb-4">
+                                        <div className="flex justify-between text-xs">
+                                            <span style={{ color: '#aaa' }}>Inicio</span>
+                                            <span style={{ color: '#555' }}>{promocion.fecha_inicio ? formatFechaUTC(promocion.fecha_inicio) : 'N/A'}</span>
+                                        </div>
+                                        <div className="flex justify-between text-xs">
+                                            <span style={{ color: '#aaa' }}>Fin</span>
+                                            <span style={{ color: new Date(promocion.fecha_fin) < new Date() ? '#a03030' : '#555' }}>
+                                                {promocion.fecha_fin ? formatFechaUTC(promocion.fecha_fin) : 'N/A'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Botones */}
+                                    <div className="flex gap-2 pt-3" style={{ borderTop: '0.5px solid #f0f0ea' }}>
+                                        <button onClick={() => openEditModal(promocion)}
+                                            className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
+                                            style={{ background: '#f0f4ff', color: '#3060a0', border: '0.5px solid #c8d8f0' }}>
+                                            Editar
+                                        </button>
+                                        <button onClick={() => openDeleteModal(promocion)}
+                                            className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
+                                            style={promocion.activo
+                                                ? { background: '#fdf4f4', color: '#a03030', border: '0.5px solid #f0d0d0' }
+                                                : { background: '#f4faf4', color: '#2a7a2a', border: '0.5px solid #c8e6c8' }}>
+                                            {promocion.activo ? 'Desactivar' : 'Activar'}
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        ))
-                    )}
+                            ))
+                        )
+                    }
                 </div>
 
                 {/* PAGINACIÓN INFERIOR */}
