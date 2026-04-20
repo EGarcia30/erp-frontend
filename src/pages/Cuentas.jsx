@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import CorteCajaModal from '../components/CorteCajaModal';
+import { SelectFormaPago } from '../components/selects';
 
 const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -63,8 +64,8 @@ const Cuentas = () => {
     const [abonosForm, setAbonosForm] = useState({
         total_abonado: 0, // ✅ Auto-monto
         tipo_pago_id: 1,
-        forma_pago_id: 1,
-        referencia: 'EFECTIVO',
+        forma_pago_id: null, // Se asigna después de cargar formas de pago
+        referencia: '',
         nota: ''
     });
     const [tiposPago, setTiposPago] = useState([]);
@@ -347,7 +348,7 @@ const Cuentas = () => {
         setAbonosForm({
             cuenta_id: cuenta.id,
             total_abonado: '',
-            forma_pago_id: 1,
+            forma_pago_id: formasPago.length > 0 ? formasPago[0].id : null,
             referencia: '',
             nota: ''
         });
@@ -1105,28 +1106,15 @@ const Cuentas = () => {
                     <div className="flex-1 overflow-y-auto px-6 py-5">
                         <form onSubmit={handleProcesarAbono} className="space-y-5">
 
-                            {/* Formas de pago */}
+                            {/* Formas de pago - CAT-017 */}
                             <div>
-                                <label className="block text-xs tracking-widest mb-3" style={{ color: '#999' }}>FORMA DE PAGO</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {formasPago.map((forma) => (
-                                        <button key={forma.id} type="button" onClick={() => handleFormaPagoChange(forma.id)} disabled={mostrarVuelto}
-                                            className="p-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2"
-                                            style={abonosForm.forma_pago_id == forma.id
-                                                ? { background: '#222', color: '#fff', border: '0.5px solid #222' }
-                                                : { background: '#f5f5f0', color: '#555', border: '0.5px solid #e0e0da' }
-                                            }>
-                                            <span className="text-base">
-                                                {forma.codigo === 'EFECTIVO' && '💵'}
-                                                {forma.codigo === 'TRANSFERENCIA' && '🏦'}
-                                                {forma.codigo === 'CHEQUE' && '📄'}
-                                                {forma.codigo === 'TARJETA DE CREDITO' && '💳'}
-                                                {forma.codigo === 'TARJETA DE DEBITO' && '🪪'}
-                                            </span>
-                                            <span className="truncate text-xs">{forma.codigo}</span>
-                                        </button>
-                                    ))}
-                                </div>
+                                <SelectFormaPago
+                                    value={abonosForm.forma_pago_id || ''}
+                                    onChange={(val) => setAbonosForm({ ...abonosForm, forma_pago_id: val })}
+                                    label="Forma de Pago"
+                                    required={true}
+                                    disabled={mostrarVuelto}
+                                />
                             </div>
 
                             {/* Monto */}

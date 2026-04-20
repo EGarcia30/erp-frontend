@@ -12,6 +12,8 @@ import Historial from "./pages/Historial";
 import Promociones from "./pages/Promociones";
 import Usuarios from "./pages/Usuarios";
 import Login from "./pages/Login";
+import Clientes from "./pages/Clientes";
+import Empresa from "./pages/Empresa";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -19,6 +21,7 @@ function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showInventoryDropdown, setShowInventoryDropdown] = useState(false);
+  const [showClientsDropdown, setShowClientsDropdown] = useState(false);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -70,6 +73,7 @@ function App() {
     const handleClickOutside = (event) => {
       if (!event.target.closest('[data-dropdown]')) {
         setShowInventoryDropdown(false);
+        setShowClientsDropdown(false);
       }
     };
     document.addEventListener('click', handleClickOutside);
@@ -77,17 +81,21 @@ function App() {
   }, []);
 
   const navLinks = [
-    { to: '/dashboard',        label: 'Dashboard',         icon: '📊' },
-    { to: '/inventario',       label: 'Inventario',        icon: '📦', type: 'dropdown', children: [
+    { id: 'dashboard', to: '/dashboard',        label: 'Dashboard',         icon: '📊' },
+    { id: 'inventario', to: '/inventario',       label: 'Inventario',        icon: '📦', type: 'dropdown', children: [
       { to: '/categorias', label: 'Categorías' },
       { to: '/productos',  label: 'Productos' },
     ]},
     // { to: '/mesas',         label: 'Mesas',             icon: '🪑' },
-    { to: '/compras',          label: 'Compras',           icon: '🛒' },
-    { to: '/promociones',      label: 'Promociones',       icon: '🎉' },
-    { to: '/historial',        label: 'Historial',         icon: '📋' },
-    { to: '/cuentas',          label: 'Ventas',            icon: '💰' },
-    { to: '/gastos-operativos',label: 'Gastos Operativos', icon: '💸' },
+    { id: 'compras', to: '/compras',          label: 'Compras',           icon: '🛒' },
+    { id: 'promociones', to: '/promociones',      label: 'Promociones',       icon: '🎉' },
+    { id: 'historial', to: '/historial',        label: 'Historial',         icon: '📋' },
+    { id: 'cuentas', to: '/cuentas',          label: 'Ventas',            icon: '💰' },
+    { id: 'usuarios-menu', to: '/usuarios-menu',    label: 'Usuarios',          icon: '👥', type: 'dropdown', children: [
+      { to: '/usuarios', label: 'Personal' },
+      { to: '/clientes', label: 'Clientes' },
+    ]},
+    { id: 'gastos', to: '/gastos-operativos',label: 'Gastos Operativos', icon: '💸' },
   ];
 
   if (loading) {
@@ -124,21 +132,24 @@ function App() {
 
               {/* LINKS DESKTOP */}
               <div className="hidden md:flex items-center gap-1">
-                {navLinks.map(({ to, label, icon, type, children }) => {
+                {navLinks.map(({ id, to, label, icon, type, children }) => {
                   if (type === 'dropdown') {
+                    const isOpen = id === 'inventario' ? showInventoryDropdown : showClientsDropdown;
+                    const setter = id === 'inventario' ? setShowInventoryDropdown : setShowClientsDropdown;
+                    
                     return (
-                      <div key={to} className="relative" data-dropdown>
+                      <div key={id} className="relative" data-dropdown>
                         <button
-                          onClick={() => setShowInventoryDropdown(!showInventoryDropdown)}
+                          onClick={() => setter(!isOpen)}
                           className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1"
                           style={{ color: '#666', background: 'transparent' }}
                         >
                           {icon}
-                          <svg className="w-2.5 h-2.5 transition-transform" style={{ transform: showInventoryDropdown ? 'rotate(180deg)' : 'rotate(0deg)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-2.5 h-2.5 transition-transform" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                           </svg>
                         </button>
-                        {showInventoryDropdown && (
+                        {isOpen && (
                           <div className="absolute top-full left-0 mt-1 w-40 rounded-xl py-2 z-50" style={{ background: '#fff', border: '0.5px solid #e0e0da', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }} data-dropdown>
                             {children.map((child) => (
                               <NavLink
@@ -149,7 +160,7 @@ function App() {
                                   ? { background: '#222', color: '#fff' }
                                   : { color: '#444', background: 'transparent' }
                                 }
-                                onClick={() => setShowInventoryDropdown(false)}
+                                onClick={() => setter(false)}
                               >
                                 <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'currentColor', opacity: 0.4 }}></span>
                                 {child.label}
@@ -162,7 +173,7 @@ function App() {
                   }
                   return (
                     <NavLink
-                      key={to}
+                      key={id}
                       to={to}
                       title={label}
                       className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200"
@@ -219,16 +230,16 @@ function App() {
                         </div>
                       </div>
 
-                      {/* Gestión usuarios */}
+                      {/* Mi Empresa */}
                       <NavLink
-                        to="/usuarios"
+                        to="/empresa"
                         className="flex items-center gap-3 px-4 py-3 text-sm transition-all duration-200"
                         style={{ color: '#444', textDecoration: 'none' }}
                         onClick={() => setShowUserDropdown(false)}
                         onMouseEnter={e => e.currentTarget.style.background = '#f5f5f0'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       >
-                        <span>👥</span> Gestión de Usuarios
+                        <span>🏢</span> Mi Empresa
                       </NavLink>
 
                       <div style={{ borderTop: '0.5px solid #f0f0ea', margin: '4px 0' }} />
@@ -327,10 +338,12 @@ function App() {
             {/* <Route path="/mesas" element={<Mesas />} /> */}
             <Route path="/compras" element={<Compras />} />
             <Route path="/usuarios" element={<Usuarios />} />
+            <Route path="/clientes" element={<Clientes />} />
             <Route path="/promociones" element={<Promociones />} />
             <Route path="/cuentas" element={<Cuentas />} />
             <Route path="/historial" element={<Historial />} />
             <Route path="/gastos-operativos" element={<GastosOperativos />} />
+            <Route path="/empresa" element={<Empresa />} />
             <Route path="*" element={<Navigate to="/cuentas" />} />
           </Routes>
         </main>
