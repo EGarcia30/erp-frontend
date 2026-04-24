@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SelectTipoItem, SelectUnidadMedida, MultiSelectTributos } from '../components/selects';
 const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const Productos = () => {
@@ -21,7 +22,10 @@ const Productos = () => {
         cantidad_maxima: 0,
         precio_compra: 0,
         precio_venta: 0,
-        categoria_id: 1  // ✅ Default categoría General
+        categoria_id: 1,
+        tipo_item_id: 1,
+        unidad_medida_id: '', // Dinámico
+        tributos: [] 
     });
     const [categorias, setCategorias] = useState([]); // ✅ Estado categorías
 
@@ -141,7 +145,10 @@ const Productos = () => {
                 cantidad_maxima: producto.cantidad_maxima || 0,
                 precio_compra: producto.precio_compra || 0,
                 precio_venta: producto.precio_venta || 0,
-                categoria_id: producto.categoria_id || 1
+                categoria_id: producto.categoria_id || 1,
+                tipo_item_id: producto.tipo_item_id || 1,
+                unidad_medida_id: producto.unidad_medida_id || 59,
+                tributos: producto.tributos ? producto.tributos.map(t => t.id) : []
             });
             setEditProduct(producto);
             setShowEditModal(true);
@@ -164,7 +171,10 @@ const Productos = () => {
                 cantidad_maxima: 0,
                 precio_compra: 0,
                 precio_venta: 0,
-                categoria_id: 1
+                categoria_id: 1,
+                tipo_item_id: 1,
+                unidad_medida_id: 59,
+                tributos: [1] // 1 = IVA 13% por defecto
             });
             setShowCreateModal(true);
         };
@@ -382,6 +392,14 @@ const Productos = () => {
                                             {producto.categoria_codigo}
                                         </span>
                                     )}
+                                    {/* Tributos Badges */}
+                                    <div className="flex flex-wrap justify-end gap-1 mt-1">
+                                        {producto.tributos && producto.tributos.map(t => (
+                                            <span key={t.id} className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 border border-gray-200 uppercase font-bold" title={t.nombre}>
+                                                {t.codigo}
+                                            </span>
+                                        ))}
+                                    </div>
                                     <span className="text-xs px-2 py-0.5 rounded-md"
                                         style={producto.activo
                                             ? { background: '#f4faf4', color: '#2a7a2a', border: '0.5px solid #c8e6c8' }
@@ -610,6 +628,32 @@ const Productos = () => {
                                     </div>
                                 </div>
 
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>TIPO ÍTEM (MH) *</label>
+                                        <SelectTipoItem 
+                                            value={createForm.tipo_item_id}
+                                            onChange={(val) => setCreateForm({ ...createForm, tipo_item_id: val })}
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>UNIDAD MEDIDA (MH) *</label>
+                                        <SelectUnidadMedida 
+                                            value={createForm.unidad_medida_id}
+                                            onChange={(val) => setCreateForm({ ...createForm, unidad_medida_id: val })}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <MultiSelectTributos 
+                                        selectedIds={createForm.tributos}
+                                        onChange={(ids) => setCreateForm({ ...createForm, tributos: ids })}
+                                    />
+                                </div>
+
                                 <div className="grid grid-cols-3 gap-3">
                                     {[['Stock Inicial', 'cantidad_disponible', '120'], ['Stock Mínimo', 'cantidad_minima', '20'], ['Stock Máximo', 'cantidad_maxima', '300']].map(([label, key, placeholder]) => (
                                         <div key={key}>
@@ -722,6 +766,32 @@ const Productos = () => {
                                         </select>
                                         <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: '#aaa' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                                     </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>TIPO ÍTEM (MH) *</label>
+                                        <SelectTipoItem 
+                                            value={editForm.tipo_item_id}
+                                            onChange={(val) => setEditForm({ ...editForm, tipo_item_id: val })}
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>UNIDAD MEDIDA (MH) *</label>
+                                        <SelectUnidadMedida 
+                                            value={editForm.unidad_medida_id}
+                                            onChange={(val) => setEditForm({ ...editForm, unidad_medida_id: val })}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <MultiSelectTributos 
+                                        selectedIds={editForm.tributos || []}
+                                        onChange={(ids) => setEditForm({ ...editForm, tributos: ids })}
+                                    />
                                 </div>
 
                                 <div className="grid grid-cols-3 gap-3">

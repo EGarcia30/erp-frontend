@@ -10,6 +10,9 @@ export { default as SelectTipoPersona } from './SelectTipoPersona';
 export { default as SelectTipoDocumento } from './SelectTipoDocumento';
 export { default as SelectTipoEstablecimiento } from './SelectTipoEstablecimiento';
 export { default as SelectFormaPago } from './SelectFormaPago';
+export { default as SelectUnidadMedida } from './SelectUnidadMedida';
+export { default as SelectTipoItem } from './SelectTipoItem';
+export { default as MultiSelectTributos } from './MultiSelectTributos';
 
 
 
