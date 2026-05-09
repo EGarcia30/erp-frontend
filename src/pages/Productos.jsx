@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { SelectTipoItem, SelectUnidadMedida, MultiSelectTributos } from '../components/selects';
+import { SelectTipoItem, SelectUnidadMedida, MultiSelectTributos, SelectCategoria } from '../components/selects';
+import { useState, useEffect } from 'react'
 const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const Productos = () => {
@@ -27,7 +27,6 @@ const Productos = () => {
         unidad_medida_id: '', // Dinámico
         tributos: [] 
     });
-    const [categorias, setCategorias] = useState([]); // ✅ Estado categorías
 
 
     //Editar Producto
@@ -43,18 +42,6 @@ const Productos = () => {
     const [searchInput, setSearchInput] = useState('');
 
     //FETCH PRINCIPALES
-        const fetchCategorias = async () => {
-            try {
-                const response = await fetch(`${apiURL}/categorias`);
-                const data = await response.json();
-                if (data.success) {
-                    setCategorias(data.data);
-                }
-            } catch (error) {
-                console.error('Error cargando categorías:', error);
-            }
-        };
-
         const fetchProductos = async (currentPage = 1, searchTerm = '', categoria = 'N/A') => {
             try {
 
@@ -117,10 +104,6 @@ const Productos = () => {
         useEffect(() => {
             fetchProductos(page, search);
         }, [page, search]);
-
-        useEffect(() => {
-            fetchCategorias();
-        }, []);
 
         useEffect(() => {
             const delayDebounce = setTimeout(() => {
@@ -613,19 +596,11 @@ const Productos = () => {
 
                                 <div>
                                     <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>CATEGORÍA *</label>
-                                    <div className="relative">
-                                        <select className="w-full px-4 py-2.5 rounded-lg text-sm outline-none appearance-none"
-                                            style={{ background: '#fafafa', border: '0.5px solid #e0e0da', color: '#222' }}
-                                            value={createForm.categoria_id}
-                                            onChange={(e) => setCreateForm({ ...createForm, categoria_id: parseInt(e.target.value) })}
-                                            required>
-                                            <option value="">Selecciona una categoría</option>
-                                            {categorias.map((cat) => (
-                                                <option key={cat.id} value={cat.id}>{cat.codigo} - {cat.nombre}</option>
-                                            ))}
-                                        </select>
-                                        <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: '#aaa' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                                    </div>
+                                    <SelectCategoria 
+                                        value={createForm.categoria_id}
+                                        onChange={(val) => setCreateForm({ ...createForm, categoria_id: val })}
+                                        required
+                                    />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
@@ -752,25 +727,15 @@ const Productos = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>CATEGORÍA *</label>
-                                    <div className="relative">
-                                        <select className="w-full px-4 py-2.5 rounded-lg text-sm outline-none appearance-none"
-                                            style={{ background: '#fafafa', border: '0.5px solid #e0e0da', color: '#222' }}
-                                            value={editForm.categoria_id || ''}
-                                            onChange={(e) => setEditForm({ ...editForm, categoria_id: parseInt(e.target.value) })}
-                                            required>
-                                            <option value="">Selecciona una categoría</option>
-                                            {categorias.map((cat) => (
-                                                <option key={cat.id} value={cat.id}>{cat.codigo} - {cat.nombre}</option>
-                                            ))}
-                                        </select>
-                                        <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: '#aaa' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                                    </div>
+                                    <SelectCategoria 
+                                        value={editForm.categoria_id}
+                                        onChange={(val) => setEditForm({ ...editForm, categoria_id: val })}
+                                        required
+                                    />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>TIPO ÍTEM (MH) *</label>
                                         <SelectTipoItem 
                                             value={editForm.tipo_item_id}
                                             onChange={(val) => setEditForm({ ...editForm, tipo_item_id: val })}
@@ -778,7 +743,6 @@ const Productos = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>UNIDAD MEDIDA (MH) *</label>
                                         <SelectUnidadMedida 
                                             value={editForm.unidad_medida_id}
                                             onChange={(val) => setEditForm({ ...editForm, unidad_medida_id: val })}

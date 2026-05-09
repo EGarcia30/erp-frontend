@@ -9,6 +9,11 @@ import {
     SelectTipoDocumento,
     SelectTipoEstablecimiento
 } from '../components/selects';
+import { 
+    SelectAmbienteDestino, 
+    SelectModeloFacturacion, 
+    SelectTipoTransmision 
+} from '../components/selects/DTECatalogosSelects';
 
 const Empresa = () => {
     const [loading, setLoading] = useState(true);
@@ -157,7 +162,7 @@ const Empresa = () => {
 
                     {/* SECCIÓN 4: CÓDIGOS MH (TÉCNICOS) */}
                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-6">
-                        <h4 className="text-[11px] font-bold text-gray-900 border-b pb-2 tracking-widest uppercase">Configuración Técnica (MH)</h4>
+                        <h4 className="text-[11px] font-bold text-gray-900 border-b pb-2 tracking-widest uppercase">Identificación en Hacienda</h4>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div>
                                 <label className="block text-[10px] tracking-widest mb-1.5 text-gray-400 uppercase">Cod. Estable. MH</label>
@@ -179,6 +184,25 @@ const Empresa = () => {
                                 <input name="cod_punto_venta" className="w-full px-4 py-2.5 border rounded-lg text-sm outline-none bg-gray-50 font-mono"
                                     value={empresa.cod_punto_venta} onChange={handleInputChange} maxLength="4" />
                             </div>
+                        </div>
+                    </div>
+
+                    {/* SECCIÓN 5: CONFIGURACIÓN DTE DINÁMICA */}
+                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-6">
+                        <h4 className="text-[11px] font-bold text-gray-900 border-b pb-2 tracking-widest uppercase">Parámetros Operativos DTE</h4>
+                        <div className="flex flex-col md:flex-row gap-6">
+                            <SelectAmbienteDestino 
+                                value={empresa.ambiente} 
+                                onChange={val => setEmpresa({...empresa, ambiente: val})} 
+                            />
+                            <SelectModeloFacturacion 
+                                value={empresa.tipo_modelo} 
+                                onChange={val => setEmpresa({...empresa, tipo_modelo: val})} 
+                            />
+                            <SelectTipoTransmision 
+                                value={empresa.tipo_operacion} 
+                                onChange={val => setEmpresa({...empresa, tipo_operacion: val})} 
+                            />
                         </div>
                     </div>
 

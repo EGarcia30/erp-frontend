@@ -10,7 +10,7 @@ export const getActividadesEconomicas = async () => {
     const response = await axios.get(`${API_URL}/actividad-economica`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching actividades económicas:', error);
+    console.error('Error fetching actividades:', error);
     throw error;
   }
 };

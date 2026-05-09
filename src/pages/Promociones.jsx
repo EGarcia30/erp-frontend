@@ -1,5 +1,6 @@
 // pages/Promociones.jsx - COMPLETO Y FUNCIONAL ✅
 import React, { useState, useEffect, useCallback } from 'react';
+import ModalSelectProducto from '../components/modals/ModalSelectProducto';
 const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const Promociones = () => {
@@ -13,6 +14,10 @@ const Promociones = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedPromocion, setSelectedPromocion] = useState(null);
+
+    // Estado para selector de productos
+    const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+    const [showProductoModal, setShowProductoModal] = useState(false);
 
     // Form states
     const [formData, setFormData] = useState({
@@ -94,6 +99,14 @@ const Promociones = () => {
         //fetchPromociones(page, search);
     }, []);
 
+    // Sincronizar producto seleccionado cuando cambia formData.producto_id
+    useEffect(() => {
+        if (formData.producto_id && productos.length > 0) {
+            const prod = productos.find(p => p.id == formData.producto_id);
+            setProductoSeleccionado(prod || null);
+        }
+    }, [formData.producto_id, productos]);
+
     // Search + pagination
     useEffect(() => {
         fetchPromociones(page, search);
@@ -162,6 +175,7 @@ const Promociones = () => {
                     fecha_inicio: '', 
                     fecha_fin: '' 
                 });
+                setProductoSeleccionado(null);
             }
         } catch (error) {
             console.error('Error editando:', error);
@@ -187,6 +201,7 @@ const Promociones = () => {
                     fecha_inicio: '', 
                     fecha_fin: '' 
                 });
+                setProductoSeleccionado(null);
             }
         } catch (error) {
             console.error('Error desactivando:', error);
@@ -201,6 +216,7 @@ const Promociones = () => {
             fecha_inicio: '',
             fecha_fin: ''
         })
+        setProductoSeleccionado(null);
         if(showCreateModal) setShowCreateModal(false)
 
         if(showEditModal) setShowEditModal(false)
@@ -456,19 +472,21 @@ const Promociones = () => {
 
                                 <div>
                                     <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>PRODUCTO *</label>
-                                    <div className="relative">
-                                        <select value={formData.producto_id} required
-                                            onChange={(e) => setFormData({ ...formData, producto_id: e.target.value })}
-                                            className="w-full px-4 py-2.5 rounded-lg text-sm outline-none appearance-none"
-                                            style={{ background: '#fafafa', border: '0.5px solid #e0e0da', color: '#222' }}>
-                                            <option value="">Seleccionar producto</option>
-                                            {productos.map(producto => (
-                                                <option key={producto.id} value={producto.id}>
-                                                    {producto.id} - {producto.descripcion} {producto.presentacion}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: '#aaa' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                    <div
+                                        onClick={() => setShowProductoModal(true)}
+                                        className="w-full px-4 py-2.5 rounded-lg text-sm outline-none cursor-pointer flex justify-between items-center transition-all"
+                                        style={{
+                                            background: '#fafafa',
+                                            border: '0.5px solid #e0e0da',
+                                            color: productoSeleccionado ? '#222' : '#888'
+                                        }}
+                                    >
+                                        {productoSeleccionado
+                                            ? `${productoSeleccionado.descripcion} ${productoSeleccionado.presentacion}`
+                                            : 'Seleccionar producto...'}
+                                        <svg className="w-4 h-4" style={{ color: '#aaa' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
                                     </div>
                                 </div>
 
@@ -547,19 +565,21 @@ const Promociones = () => {
 
                                 <div>
                                     <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>PRODUCTO *</label>
-                                    <div className="relative">
-                                        <select value={formData.producto_id} required
-                                            onChange={(e) => setFormData({ ...formData, producto_id: e.target.value })}
-                                            className="w-full px-4 py-2.5 rounded-lg text-sm outline-none appearance-none"
-                                            style={{ background: '#fafafa', border: '0.5px solid #e0e0da', color: '#222' }}>
-                                            <option value="">Seleccionar producto</option>
-                                            {productos.map(producto => (
-                                                <option key={producto.id} value={producto.id}>
-                                                    {producto.id} - {producto.descripcion} {producto.presentacion}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: '#aaa' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                    <div
+                                        onClick={() => setShowProductoModal(true)}
+                                        className="w-full px-4 py-2.5 rounded-lg text-sm outline-none cursor-pointer flex justify-between items-center transition-all"
+                                        style={{
+                                            background: '#fafafa',
+                                            border: '0.5px solid #e0e0da',
+                                            color: productoSeleccionado ? '#222' : '#888'
+                                        }}
+                                    >
+                                        {productoSeleccionado
+                                            ? `${productoSeleccionado.descripcion} ${productoSeleccionado.presentacion}`
+                                            : 'Seleccionar producto...'}
+                                        <svg className="w-4 h-4" style={{ color: '#aaa' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
                                     </div>
                                 </div>
 
@@ -642,6 +662,18 @@ const Promociones = () => {
                 </div>
                 </>
             )}
+
+            {/* ── MODAL SELECCIONAR PRODUCTO ──────────────────────── */}
+            <ModalSelectProducto 
+                isOpen={showProductoModal}
+                onClose={() => setShowProductoModal(false)}
+                onSelect={(producto) => {
+                    setFormData(prev => ({ ...prev, producto_id: producto.id }));
+                    setProductoSeleccionado(producto);
+                    setShowProductoModal(false);
+                }}
+                selectedId={formData.producto_id}
+            />
         </div>
     );
 };

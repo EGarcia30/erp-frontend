@@ -12,6 +12,7 @@ export { default as SelectTipoEstablecimiento } from './SelectTipoEstablecimient
 export { default as SelectFormaPago } from './SelectFormaPago';
 export { default as SelectUnidadMedida } from './SelectUnidadMedida';
 export { default as SelectTipoItem } from './SelectTipoItem';
+export { default as SelectCategoria } from './SelectCategoria';
 export { default as MultiSelectTributos } from './MultiSelectTributos';
 
 
