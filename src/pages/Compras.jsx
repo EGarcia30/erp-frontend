@@ -10,6 +10,7 @@ const Compras = () => {
     const [page, setPage] = useState(1);
     const [productosPage, setProductosPage] = useState(1);
     const [loading, setLoading] = useState(true);
+    const [loadingProductos, setLoadingProductos] = useState(false);
     const [updating, setUpdating] = useState(null);
 
     // ESTADOS PARA EDITAR
@@ -82,7 +83,7 @@ const Compras = () => {
     // PAGINACIÓN PRODUCTOS
     const fetchProductos = async (currentPage = 1, categoria = 'N/A', searchTerm = '') => {
         try {
-
+            setLoadingProductos(true);
             const params = new URLSearchParams({
                 page: currentPage,
                 limit: 10,
@@ -103,6 +104,8 @@ const Compras = () => {
 
         } catch (error) {
             console.error('Error cargando productos:', error);
+        } finally {
+            setLoadingProductos(false);
         }
 
     };
@@ -608,24 +611,33 @@ const Compras = () => {
 
                             {/* Grid productos */}
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                                {productos.map(producto => {
-                                    const cantidadSeleccionada = selectedProductos.filter(p => p.id === producto.id).reduce((t, p) => t + (p.cantidad || 1), 0);
-                                    return (
-                                        <button key={producto.id} onClick={() => handleAgregarProducto(producto)} disabled={producto.cantidad_disponible === 0}
-                                            className="p-3 rounded-xl text-left transition-all duration-200 disabled:opacity-40 relative"
-                                            style={cantidadSeleccionada > 0
-                                                ? { background: '#222', border: '0.5px solid #222' }
-                                                : { background: '#fff', border: '0.5px solid #e0e0da' }}>
-                                            {cantidadSeleccionada > 0 && (
-                                                <span className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff' }}>{parseInt(cantidadSeleccionada)}</span>
-                                            )}
-                                            <p className="text-xs font-medium mb-1 line-clamp-2 pr-6" style={{ color: cantidadSeleccionada > 0 ? '#fff' : '#222' }}>{producto.descripcion}</p>
-                                            <p className="text-xs mb-1" style={{ color: cantidadSeleccionada > 0 ? 'rgba(255,255,255,0.6)' : '#aaa' }}>{producto.presentacion}</p>
-                                            <p className="text-sm font-medium" style={{ color: cantidadSeleccionada > 0 ? '#fff' : '#111' }}>${producto.precio_compra.toLocaleString('es-SV')}</p>
-                                            <p className="text-xs mt-1" style={{ color: cantidadSeleccionada > 0 ? 'rgba(255,255,255,0.5)' : '#ccc' }}>Stock {parseInt(producto.cantidad_disponible)}</p>
-                                        </button>
-                                    );
-                                })}
+                                {loadingProductos ? (
+                                    <div className="col-span-full py-12 flex flex-col items-center justify-center">
+                                        <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-800 rounded-full animate-spin mb-2" />
+                                        <p className="text-xs" style={{ color: '#aaa' }}>Cargando productos...</p>
+                                    </div>
+                                ) : productos.length === 0 ? (
+                                    <p className="col-span-full text-center py-10 text-xs" style={{ color: '#aaa' }}>No hay productos en esta categoría</p>
+                                ) : (
+                                    productos.map(producto => {
+                                        const cantidadSeleccionada = selectedProductos.filter(p => p.id === producto.id).reduce((t, p) => t + (p.cantidad || 1), 0);
+                                        return (
+                                            <button key={producto.id} onClick={() => handleAgregarProducto(producto)} disabled={producto.cantidad_disponible === 0}
+                                                className="p-3 rounded-xl text-left transition-all duration-200 disabled:opacity-40 relative"
+                                                style={cantidadSeleccionada > 0
+                                                    ? { background: '#222', border: '0.5px solid #222' }
+                                                    : { background: '#fff', border: '0.5px solid #e0e0da' }}>
+                                                {cantidadSeleccionada > 0 && (
+                                                    <span className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff' }}>{parseInt(cantidadSeleccionada)}</span>
+                                                )}
+                                                <p className="text-xs font-medium mb-1 line-clamp-2 pr-6" style={{ color: cantidadSeleccionada > 0 ? '#fff' : '#222' }}>{producto.descripcion}</p>
+                                                <p className="text-xs mb-1" style={{ color: cantidadSeleccionada > 0 ? 'rgba(255,255,255,0.6)' : '#aaa' }}>{producto.presentacion}</p>
+                                                <p className="text-sm font-medium" style={{ color: cantidadSeleccionada > 0 ? '#fff' : '#111' }}>${producto.precio_compra.toLocaleString('es-SV')}</p>
+                                                <p className="text-xs mt-1" style={{ color: cantidadSeleccionada > 0 ? 'rgba(255,255,255,0.5)' : '#ccc' }}>Stock {parseInt(producto.cantidad_disponible)}</p>
+                                            </button>
+                                        );
+                                    })
+                                )}
                             </div>
 
                             {/* Paginación inferior */}
