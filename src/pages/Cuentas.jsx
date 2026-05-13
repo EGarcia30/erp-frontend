@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import CorteCajaModal from '../components/CorteCajaModal';
 import ModalSelectCliente from '../components/modals/ModalSelectCliente';
+import ModalSelectTipoDocumento from '../components/modals/ModalSelectTipoDocumento';
 import { SelectFormaPago } from '../components/selects';
+import { getTiposDTE } from '../services/tipo_dte';
 
 const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -24,6 +26,7 @@ const Cuentas = () => {
     const [createForm, setCreateForm] = useState({
         cliente: 'Consumidor Final',
         cliente_id: 1,
+        tipo_dte: '01',
         tipo_cuenta: 'individual',
         mesa_id: null
     });
@@ -34,7 +37,7 @@ const Cuentas = () => {
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [selectedCuenta, setSelectedCuenta] = useState(null);
     const [loadingDetail, setLoadingDetail] = useState(false);
-    const [editForm, setEditForm] = useState({ cliente: '', cliente_id: '', tipo_cuenta: '' , mesa_id: '', mesa_original: '' });
+    const [editForm, setEditForm] = useState({ cliente: '', cliente_id: '', tipo_dte: '01', tipo_cuenta: '' , mesa_id: '', mesa_original: '' });
     const [detalleProductos, setDetalleProductos] = useState([]); // Productos originales editables
     const [editProductos, setEditProductos] = useState([]); // Productos nuevos
     const [creatingCuentaDetalle, setCreatingCuentaDetalle] = useState(false);
@@ -42,6 +45,10 @@ const Cuentas = () => {
     // Estado para selector de clientes
     const [showClienteModal, setShowClienteModal] = useState(false);
     const [clienteModalMode, setClienteModalMode] = useState('create'); // 'create' o 'edit'
+
+    // Estado para selector de Tipo DTE
+    const [showTipoDTEModal, setShowTipoDTEModal] = useState(false);
+    const [tipoDTEModalMode, setTipoDTEModalMode] = useState('create');
 
     // Promociones
     const [promocionesPorProducto, setPromocionesPorProducto] = useState({});
@@ -56,6 +63,9 @@ const Cuentas = () => {
     //categorias
     const [categorias, setCategorias] = useState([]);
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('N/A');
+
+    //tipos dte
+    const [tiposDTE, setTiposDTE] = useState([]);
 
     //Buscador de cuentas
     const [searchCuenta, setSearchCuenta] = useState('');
@@ -198,6 +208,13 @@ const Cuentas = () => {
 
     //USEEFFECT PRINCIPALES
     // Effects
+    // 3. Cargar al montar
+    useEffect(() => {
+    getTiposDTE()
+        .then(data => setTiposDTE(data || []))
+        .catch(err => console.error('Error cargando tiposDTE:', err));
+    }, []);
+
     useEffect(() => {
         fetchCuentas(page, searchCuenta);
         fetchTotalesCuentas();
@@ -230,14 +247,13 @@ const Cuentas = () => {
 
     useEffect(() => {
         if (showDetailModal || showCreateModal) {
-            console.log('fetchProductos triggered by modal open with:', { productosPage, searchProducto, categoriaSeleccionada });
             fetchProductos(productosPage, searchProducto, categoriaSeleccionada)
         }
     }, [showCreateModal, showDetailModal, productosPage, categoriaSeleccionada, searchProducto])
 
     useEffect(() => {
         if (showDetailModal || showCreateModal) {
-            fetchCategorias()
+            fetchCategorias();
         }
     }, [showCreateModal, showDetailModal]);
 
@@ -517,6 +533,7 @@ const Cuentas = () => {
                 body: JSON.stringify({
                 cliente: editForm.cliente,
                 cliente_id: editForm.cliente_id || null,
+                tipo_dte: editForm.tipo_dte,
                 tipo_cuenta: editForm.tipo_cuenta,
                 mesa_id: editForm.mesa_id || null,
                 detalles: todosProductos.map(p => ({
@@ -717,6 +734,7 @@ const Cuentas = () => {
         setEditForm({ 
             cliente: cuenta.cliente, 
             cliente_id: cuenta.cliente_id,
+            tipo_dte: cuenta.tipo_dte || '01',
             tipo_cuenta: cuenta.tipo_cuenta, 
             mesa_id: cuenta.mesa_id || '', 
             mesa_original: cuenta.mesa_id || '' 
@@ -780,6 +798,7 @@ const Cuentas = () => {
         setCreateForm({ 
             cliente: 'Consumidor Final', 
             cliente_id: 1,
+            tipo_dte: '01',
             tipo_cuenta: 'individual', 
             mesa_id: null 
         });
@@ -792,7 +811,7 @@ const Cuentas = () => {
     const handleCerrarDetalle = () => {
         setShowDetailModal(false);
         setSelectedCuenta(null);
-        setEditForm({ cliente: '', cliente_id: '', mesa_id: '' });
+        setEditForm({ cliente: '', cliente_id: '', tipo_dte: '01', mesa_id: '' });
         setDetalleProductos([]);
         setEditProductos([]);
         setCategoriaSeleccionada('N/A');  // ✅ Reset a N/A
@@ -806,6 +825,15 @@ const Cuentas = () => {
             setEditForm(prev => ({ ...prev, cliente: cliente.nombre, cliente_id: cliente.id }));
         }
         setShowClienteModal(false);
+    };
+
+    const handleSelectTipoDTE = (tipo) => {
+        if (tipoDTEModalMode === 'create') {
+            setCreateForm(prev => ({ ...prev, tipo_dte: tipo.codigo }));
+        } else {
+            setEditForm(prev => ({ ...prev, tipo_dte: tipo.codigo }));
+        }
+        setShowTipoDTEModal(false);
     };
 
     // ✅ 1. PROMOCIONES - SOLO editProductos
@@ -891,6 +919,10 @@ const Cuentas = () => {
             </div>
         );
     }
+
+    // Justo antes del return del componente padre
+    console.log('tiposDTE:', tiposDTE);
+    console.log('createForm.tipo_dte:', createForm.tipo_dte);
 
     return (
         <>
@@ -1233,21 +1265,42 @@ const Cuentas = () => {
                                 <svg className="w-4 h-4" style={{ color: '#666' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
-                        <div>
-                            <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>CLIENTE</label>
-                            <div
-                                onClick={() => { setClienteModalMode('create'); setShowClienteModal(true); }}
-                                className="w-full max-w-sm px-4 py-2.5 rounded-lg text-sm outline-none cursor-pointer flex justify-between items-center transition-all"
-                                style={{
-                                    background: '#fafafa',
-                                    border: '0.5px solid #e0e0da',
-                                    color: createForm.cliente ? '#222' : '#888'
-                                }}
-                            >
-                                {createForm.cliente || 'Seleccionar cliente...'}
-                                <svg className="w-4 h-4" style={{ color: '#aaa' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>CLIENTE</label>
+                                <div
+                                    onClick={() => { setClienteModalMode('create'); setShowClienteModal(true); }}
+                                    className="w-full px-4 py-2.5 rounded-lg text-sm outline-none cursor-pointer flex justify-between items-center transition-all"
+                                    style={{
+                                        background: '#fafafa',
+                                        border: '0.5px solid #e0e0da',
+                                        color: createForm.cliente ? '#222' : '#888'
+                                    }}
+                                >
+                                    {createForm.cliente || 'Seleccionar cliente...'}
+                                    <svg className="w-4 h-4" style={{ color: '#aaa' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>TIPO DOCUMENTO</label>
+                                <div
+                                    onClick={() => { setTipoDTEModalMode('create'); setShowTipoDTEModal(true); }}
+                                    className="w-full px-4 py-2.5 rounded-lg text-sm outline-none cursor-pointer flex justify-between items-center transition-all"
+                                    style={{
+                                        background: '#fafafa',
+                                        border: '0.5px solid #e0e0da',
+                                        color: '#222'
+                                    }}
+                                >
+                                    {tiposDTE.find(t => t.codigo === createForm.tipo_dte)?.nombre || 
+                                     tiposDTE.find(t => t.codigo === createForm.tipo_dte)?.descripcion || 
+                                     'Factura'}
+                                    <svg className="w-4 h-4" style={{ color: '#aaa' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1438,21 +1491,42 @@ const Cuentas = () => {
                                 <svg className="w-4 h-4" style={{ color: '#666' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
-                        <div>
-                            <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>CLIENTE</label>
-                            <div
-                                onClick={() => { setClienteModalMode('edit'); setShowClienteModal(true); }}
-                                className="w-full max-w-sm px-4 py-2.5 rounded-lg text-sm outline-none cursor-pointer flex justify-between items-center transition-all"
-                                style={{
-                                    background: '#fafafa',
-                                    border: '0.5px solid #e0e0da',
-                                    color: editForm.cliente ? '#222' : '#888'
-                                }}
-                            >
-                                {editForm.cliente || 'Seleccionar cliente...'}
-                                <svg className="w-4 h-4" style={{ color: '#aaa' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>CLIENTE</label>
+                                <div
+                                    onClick={() => { setClienteModalMode('edit'); setShowClienteModal(true); }}
+                                    className="w-full px-4 py-2.5 rounded-lg text-sm outline-none cursor-pointer flex justify-between items-center transition-all"
+                                    style={{
+                                        background: '#fafafa',
+                                        border: '0.5px solid #e0e0da',
+                                        color: editForm.cliente ? '#222' : '#888'
+                                    }}
+                                >
+                                    {editForm.cliente || 'Seleccionar cliente...'}
+                                    <svg className="w-4 h-4" style={{ color: '#aaa' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>TIPO DOCUMENTO</label>
+                                <div
+                                    onClick={() => { setTipoDTEModalMode('edit'); setShowTipoDTEModal(true); }}
+                                    className="w-full px-4 py-2.5 rounded-lg text-sm outline-none cursor-pointer flex justify-between items-center transition-all"
+                                    style={{
+                                        background: '#fafafa',
+                                        border: '0.5px solid #e0e0da',
+                                        color: '#222'
+                                    }}
+                                >
+                                    {tiposDTE.find(t => t.codigo === editForm.tipo_dte)?.nombre || 
+                                     tiposDTE.find(t => t.codigo === editForm.tipo_dte)?.descripcion || 
+                                     'Factura'}
+                                    <svg className="w-4 h-4" style={{ color: '#aaa' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1652,6 +1726,13 @@ const Cuentas = () => {
             onClose={() => setShowClienteModal(false)}
             onSelect={handleSelectCliente}
             selectedId={clienteModalMode === 'create' ? createForm.cliente_id : editForm.cliente_id}
+        />
+
+        <ModalSelectTipoDocumento
+            isOpen={showTipoDTEModal}
+            onClose={() => setShowTipoDTEModal(false)}
+            onSelect={handleSelectTipoDTE}
+            selectedId={tipoDTEModalMode === 'create' ? createForm.tipo_dte : editForm.tipo_dte}
         />
         </>
     );
