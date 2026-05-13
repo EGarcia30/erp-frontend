@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import CorteCajaModal from '../components/CorteCajaModal';
+import ModalSelectCliente from '../components/modals/ModalSelectCliente';
 import { SelectFormaPago } from '../components/selects';
 
 const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -20,7 +21,8 @@ const Cuentas = () => {
     // Modal nueva cuenta
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [createForm, setCreateForm] = useState({
-        cliente: '',
+        cliente: 'Consumidor Final',
+        cliente_id: 1,
         tipo_cuenta: 'individual',
         mesa_id: null
     });
@@ -31,10 +33,14 @@ const Cuentas = () => {
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [selectedCuenta, setSelectedCuenta] = useState(null);
     const [loadingDetail, setLoadingDetail] = useState(false);
-    const [editForm, setEditForm] = useState({ cliente: '', tipo_cuenta: '' , mesa_id: '', mesa_original: '' });
+    const [editForm, setEditForm] = useState({ cliente: '', cliente_id: '', tipo_cuenta: '' , mesa_id: '', mesa_original: '' });
     const [detalleProductos, setDetalleProductos] = useState([]); // Productos originales editables
     const [editProductos, setEditProductos] = useState([]); // Productos nuevos
     const [creatingCuentaDetalle, setCreatingCuentaDetalle] = useState(false);
+
+    // Estado para selector de clientes
+    const [showClienteModal, setShowClienteModal] = useState(false);
+    const [clienteModalMode, setClienteModalMode] = useState('create'); // 'create' o 'edit'
 
     // Promociones
     const [promocionesPorProducto, setPromocionesPorProducto] = useState({});
@@ -509,6 +515,7 @@ const Cuentas = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                 cliente: editForm.cliente,
+                cliente_id: editForm.cliente_id || null,
                 tipo_cuenta: editForm.tipo_cuenta,
                 mesa_id: editForm.mesa_id || null,
                 detalles: todosProductos.map(p => ({
@@ -706,7 +713,13 @@ const Cuentas = () => {
     const handleAbrirDetalle = useCallback(async (cuenta) => {
         // Inicializar estados
         setSelectedCuenta(cuenta);
-        setEditForm({ cliente: cuenta.cliente, tipo_cuenta: cuenta.tipo_cuenta, mesa_id: cuenta.mesa_id || '', mesa_original: cuenta.mesa_id || '' });
+        setEditForm({ 
+            cliente: cuenta.cliente, 
+            cliente_id: cuenta.cliente_id,
+            tipo_cuenta: cuenta.tipo_cuenta, 
+            mesa_id: cuenta.mesa_id || '', 
+            mesa_original: cuenta.mesa_id || '' 
+        });
         setDetalleProductos(cuenta.detalles?.map(d => ({ 
             ...d, 
             cantidad: d.cantidad_vendida || d.cantidad || 1 
@@ -763,7 +776,12 @@ const Cuentas = () => {
     const handleCerrarModal = () => {
         setShowCreateModal(false);
         setSelectedProductos([]);
-        setCreateForm({ cliente: '', tipo_cuenta: 'individual', mesa_id: null });
+        setCreateForm({ 
+            cliente: 'Consumidor Final', 
+            cliente_id: 1,
+            tipo_cuenta: 'individual', 
+            mesa_id: null 
+        });
         setProductosPage(1);
         setCategoriaSeleccionada('N/A');  // ✅ Reset a N/A
         setSearchProductoInput('');
@@ -773,11 +791,20 @@ const Cuentas = () => {
     const handleCerrarDetalle = () => {
         setShowDetailModal(false);
         setSelectedCuenta(null);
-        setEditForm({ cliente: '', mesa_id: '' });
+        setEditForm({ cliente: '', cliente_id: '', mesa_id: '' });
         setDetalleProductos([]);
         setEditProductos([]);
         setCategoriaSeleccionada('N/A');  // ✅ Reset a N/A
         setSearchProductoInput('');
+    };
+
+    const handleSelectCliente = (cliente) => {
+        if (clienteModalMode === 'create') {
+            setCreateForm(prev => ({ ...prev, cliente: cliente.nombre, cliente_id: cliente.id }));
+        } else {
+            setEditForm(prev => ({ ...prev, cliente: cliente.nombre, cliente_id: cliente.id }));
+        }
+        setShowClienteModal(false);
     };
 
     // ✅ 1. PROMOCIONES - SOLO editProductos
@@ -1207,11 +1234,20 @@ const Cuentas = () => {
                         </div>
                         <div>
                             <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>CLIENTE</label>
-                            <input className="w-full max-w-sm px-4 py-2.5 rounded-lg text-sm outline-none"
-                                style={{ background: '#fafafa', border: '0.5px solid #e0e0da', color: '#222' }}
-                                value={createForm.cliente}
-                                onChange={(e) => setCreateForm({ ...createForm, cliente: e.target.value })}
-                                required placeholder="Nombre del cliente" />
+                            <div
+                                onClick={() => { setClienteModalMode('create'); setShowClienteModal(true); }}
+                                className="w-full max-w-sm px-4 py-2.5 rounded-lg text-sm outline-none cursor-pointer flex justify-between items-center transition-all"
+                                style={{
+                                    background: '#fafafa',
+                                    border: '0.5px solid #e0e0da',
+                                    color: createForm.cliente ? '#222' : '#888'
+                                }}
+                            >
+                                {createForm.cliente || 'Seleccionar cliente...'}
+                                <svg className="w-4 h-4" style={{ color: '#aaa' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
                         </div>
                     </div>
 
@@ -1394,11 +1430,20 @@ const Cuentas = () => {
                         </div>
                         <div>
                             <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>CLIENTE</label>
-                            <input className="w-full max-w-sm px-4 py-2.5 rounded-lg text-sm outline-none"
-                                style={{ background: '#fafafa', border: '0.5px solid #e0e0da', color: '#222' }}
-                                value={editForm.cliente}
-                                onChange={(e) => setEditForm({ ...editForm, cliente: e.target.value })}
-                                required placeholder="Nombre del cliente" />
+                            <div
+                                onClick={() => { setClienteModalMode('edit'); setShowClienteModal(true); }}
+                                className="w-full max-w-sm px-4 py-2.5 rounded-lg text-sm outline-none cursor-pointer flex justify-between items-center transition-all"
+                                style={{
+                                    background: '#fafafa',
+                                    border: '0.5px solid #e0e0da',
+                                    color: editForm.cliente ? '#222' : '#888'
+                                }}
+                            >
+                                {editForm.cliente || 'Seleccionar cliente...'}
+                                <svg className="w-4 h-4" style={{ color: '#aaa' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
                         </div>
                     </div>
 
@@ -1582,6 +1627,13 @@ const Cuentas = () => {
         )}
 
         <CorteCajaModal isOpen={showCorteModal} onClose={() => setShowCorteModal(false)} />
+
+        <ModalSelectCliente
+            isOpen={showClienteModal}
+            onClose={() => setShowClienteModal(false)}
+            onSelect={handleSelectCliente}
+            selectedId={clienteModalMode === 'create' ? createForm.cliente_id : editForm.cliente_id}
+        />
         </>
     );
 };
