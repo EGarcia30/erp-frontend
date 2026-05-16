@@ -752,27 +752,44 @@ const Cuentas = () => {
         setShowDetailModal(true);
     }, [showDetailModal]);
 
+    const calcularTotales = () => {
+        return selectedProductos.reduce((acc, p) => {
+            const precioOriginal = parseFloat(p.precio_venta_original || p.precio_venta);
+            const precioCobrado = parseFloat(p.precio_venta);
+            const cantidad = parseFloat(p.cantidad);
+            
+            acc.total += precioCobrado * cantidad;
+            acc.descuento_total += (precioOriginal - precioCobrado) * cantidad;
+            return acc;
+        }, { total: 0, descuento_total: 0 });
+    };
+
     const handleCrearCuenta = async (e) => {
         e.preventDefault();
         if (!createForm.cliente || selectedProductos.length === 0) return;
         
         try {
             setCreatingCuenta(true);
-        const response = await fetch(`${apiURL}/cuentas`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-            ...createForm,
-            total: calcularTotal(),
-            detalles: selectedProductos.map(p => ({
-                producto_id: p.id,
-                cantidad_vendida: p.cantidad,
-                precio_compra_actual: p.precio_compra,
-                precio_venta: p.precio_venta || p.precio_compra * 1.3,
-                promocion_id: p.promocion_activa?.id || null
-            }))
-            })
-        });
+            const { total, descuento_total } = calcularTotales();
+
+            const response = await fetch(`${apiURL}/cuentas`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...createForm,
+                    total: total,
+                    descuento_total: descuento_total,
+                    detalles: selectedProductos.map(p => ({
+                        producto_id: p.id,
+                        cantidad_vendida: p.cantidad,
+                        precio_compra_actual: p.precio_compra,
+                        precio_venta: parseFloat(p.precio_venta),
+                        precio_original: parseFloat(p.precio_venta_original || p.precio_venta),
+                        monto_descuento: (parseFloat(p.precio_venta_original || p.precio_venta) - parseFloat(p.precio_venta)) * p.cantidad,
+                        promocion_id: p.promocion_activa?.id || null
+                    }))
+                })
+            });
 
         const data = await response.json();
         
