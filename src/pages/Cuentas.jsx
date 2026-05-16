@@ -415,6 +415,7 @@ const Cuentas = () => {
             if (data.success) {
             const cuenta = data.data.cuenta;
             const abono = data.data.abono;
+            const dte = data.data.dte;
 
             // 🆕 MENSAJE (solo con forma de pago)
             const formaPago = formasPago.find(f => f.id === abono.forma_pago_id);
@@ -431,11 +432,95 @@ const Cuentas = () => {
                 setMostrarVuelto(true);
                 setPagoParcial(false);
 
+                // 🚀 DISPARAR DOCUMENTOS DTE
+                if (dte) {
+                    // 1. Descargar PDF (Factura)
+                    if (dte.pdfBase64) {
+                        const linkSource = `data:application/pdf;base64,${dte.pdfBase64}`;
+                        const downloadLink = document.createElement("a");
+                        downloadLink.href = linkSource;
+                        downloadLink.download = `${dte.json?.identificacion?.numeroControl || 'Factura'}.pdf`;
+                        downloadLink.click();
+                    }
+
+                    // 2. Imprimir Ticket Térmico
+                    if (dte.ticket && dte.ticket.texto) {
+                        const win = window.open('', 'PRINT', 'height=600,width=400');
+                        const style = `
+                            @media print {
+                                @page { size: 80mm auto; margin: 0; }
+                                body { margin: 0; padding: 0; }
+                                .no-print { display: none; }
+                            }
+                            body { 
+                                font-family: "Courier New", Courier, monospace; 
+                                font-size: 12px; 
+                                width: 80mm; 
+                                margin: 0; 
+                                padding: 0; 
+                                background-color: #fff;
+                            }
+                            .ticket-wrapper { 
+                                width: 72mm; 
+                                padding: 4mm; 
+                                box-sizing: border-box;
+                            }
+                            pre { 
+                                white-space: pre; 
+                                margin: 0; 
+                                font-family: "Courier New", Courier, monospace; 
+                                line-height: 1.2;
+                                letter-spacing: -0.1px;
+                            }
+                            img { 
+                                display: block; 
+                                margin: 4mm auto; 
+                                width: 40mm; 
+                                height: 40mm; 
+                            }
+                            .qr-text { 
+                                text-align: center; 
+                                font-size: 8px; 
+                                margin-top: 1mm; 
+                                word-break: break-all;
+                                font-family: sans-serif;
+                            }
+                        `;
+
+                        win.document.write('<!DOCTYPE html><html><head><title>Ticket</title>');
+                        win.document.write('<style>' + style + '</style>');
+                        win.document.write('</head><body>');
+                        win.document.write('<div class="ticket-wrapper">');
+                        win.document.write('<pre>' + dte.ticket.texto + '</pre>');
+                        win.document.write('<img src="' + dte.ticket.qrBase64 + '" />');
+                        win.document.write('<div class="qr-text">' + dte.ticket.codigoGeneracion + '</div>');
+                        win.document.write('</div>');
+                        win.document.write('</body></html>');
+                        win.document.close();
+                        
+                        // Esperar a que los recursos carguen antes de imprimir
+                        win.onload = () => {
+                            win.focus();
+                            win.print();
+                            win.close();
+                        };
+                        
+                        // Fallback por si onload no dispara
+                        setTimeout(() => {
+                            if (!win.closed) {
+                                win.focus();
+                                win.print();
+                                win.close();
+                            }
+                        }, 1000);
+                    }
+                }
+
                 setTimeout(() => {
                     handleCerrarAbonosModal();
                     fetchTotalesCuentas();
                     fetchCuentas(page, searchCuenta);
-                }, 2000);
+                }, 4000);
             } else {
                 setMensajeResultado(
                 `✅ Abono registrado: $${formatDinero(abono.total_abonado)} ` +
