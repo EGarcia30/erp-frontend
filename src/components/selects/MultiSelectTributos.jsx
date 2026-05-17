@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { getTributos } from '../../services/tributos';
 
-/**
- * Componente MultiSelect para Tributos (CAT-015 - MH El Salvador)
- * Permite seleccionar múltiples impuestos por producto.
- */
 const MultiSelectTributos = ({ 
     selectedIds = [], 
     onChange, 
     label = "Tributos (MH)", 
     required = false,
-    disabled = false
+    disabled = false,
+    disabledIds = []
 }) => {
     const [tributos, setTributos] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -39,6 +36,7 @@ const MultiSelectTributos = ({
     );
 
     const toggleTributo = (id) => {
+        if (disabledIds.includes(id)) return;
         if (selectedIds.includes(id)) {
             onChange(selectedIds.filter(item => item !== id));
         } else {
@@ -62,7 +60,6 @@ const MultiSelectTributos = ({
                 </label>
             )}
             
-            {/* Cabecera / Display */}
             <div 
                 onClick={() => !disabled && setShowOptions(!showOptions)}
                 className={`w-full px-3 py-2 text-sm border border-gray-300 rounded-lg cursor-pointer flex justify-between items-center transition-all ${disabled ? 'bg-gray-50 cursor-not-allowed' : 'bg-white hover:border-gray-400'}`}
@@ -73,7 +70,6 @@ const MultiSelectTributos = ({
                 <span className="text-gray-400 text-[10px]">{showOptions ? '▲' : '▼'}</span>
             </div>
 
-            {/* Panel de Selección */}
             {showOptions && !disabled && (
                 <div className="absolute z-50 top-full left-0 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-64 flex flex-col overflow-hidden">
                     <div className="p-2 border-b border-gray-100 bg-gray-50">
@@ -95,14 +91,15 @@ const MultiSelectTributos = ({
                                     key={t.id}
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        toggleTributo(t.id);
+                                        if (!disabledIds.includes(t.id)) toggleTributo(t.id);
                                     }}
-                                    className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-gray-50 transition-colors ${selectedIds.includes(t.id) ? 'bg-blue-50/50' : ''}`}
+                                    className={`flex items-center gap-2 p-2 rounded transition-colors ${disabledIds.includes(t.id) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'} ${selectedIds.includes(t.id) ? 'bg-blue-50/50' : ''}`}
                                 >
                                     <input 
                                         type="checkbox" 
                                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                         checked={selectedIds.includes(t.id)}
+                                        disabled={disabledIds.includes(t.id)}
                                         readOnly
                                     />
                                     <div className="flex flex-col">
@@ -137,14 +134,7 @@ const MultiSelectTributos = ({
                     </div>
                 </div>
             )}
-
-            {/* Overlay para cerrar al hacer click fuera */}
-            {showOptions && (
-                <div 
-                    className="fixed inset-0 z-40" 
-                    onClick={() => setShowOptions(false)}
-                />
-            )}
+            {showOptions && <div className="fixed inset-0 z-40" onClick={() => setShowOptions(false)} />}
         </div>
     );
 };

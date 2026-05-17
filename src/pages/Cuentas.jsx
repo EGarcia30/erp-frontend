@@ -596,7 +596,18 @@ const Cuentas = () => {
             p.id === producto.id ? { ...p, cantidad: (p.cantidad || 0) + 1 } : p
         ));
         } else {
-            setEditProductos(prev => [{ ...producto, cantidad: 1 }, ...prev]);
+            const precioVenta = producto.precio_venta || producto.precioventa;
+            setEditProductos(prev => [{ 
+                ...producto, 
+                cantidad: 1,
+                precio_venta: precioVenta,
+                precio_original: producto.precio_venta,
+                monto_descuento: 0,
+                subtotal_neto: 0,
+                iva_monto: 0,
+                promocion_activa: null,
+                tipo_impuesto: producto.tipo_impuesto || '1'
+            }, ...prev]);
         }
     };
 
@@ -627,7 +638,11 @@ const Cuentas = () => {
                     precio_compra_actual: p.precio_compra_actual || p.precio_compra,
                     precio_venta: p.precio_venta || p.precioventa,
                     promocion_id: p.promocion_activa?.id || null,
-                    descripcion: p.descripcion
+                    descripcion: p.descripcion,
+                    precio_original: p.precio_original || p.precio_venta,
+                    monto_descuento: p.monto_descuento || 0,
+                    subtotal_neto: p.subtotal_neto || 0,
+                    iva_monto: p.iva_monto || 0
                 }))
                 })
             });
@@ -716,15 +731,13 @@ const Cuentas = () => {
             p.id === producto.id ? { ...p, cantidad: p.cantidad + 1 } : p
             ));
         } else {
-            setSelectedProductos([
-                { 
-                    ...producto, 
-                    cantidad: 1,
-                    precioventa_original: producto.precio_venta, // guardar precio normal
-                    promocion_activa: null                       // sin promo al inicio
-                },
-                ...selectedProductos           
-            ]);
+            setSelectedProductos([...selectedProductos, { 
+                ...producto, 
+                cantidad: 1,
+                precioventa_original: producto.precio_venta,
+                promocion_activa: null,
+                tipo_impuesto: producto.tipo_impuesto || '1'
+            }]);
         }
     };
 
@@ -747,18 +760,19 @@ const Cuentas = () => {
         // Actualizar productos originales
         setDetalleProductos(prev =>
             prev.map(p => {
-                //p es modelo de cuenta_detalle no producto
+                // p es modelo de cuenta_detalle (tiene precio_venta, precio_original)
                 if (p.id !== cuentaDetalleId) return p;
                 
-                const precioBase = p.precioventa_original;
+                // Usar precio_original si existe, sino caer al precio_venta inicial
+                const precioBase = parseFloat(p.precio_original) || parseFloat(p.precio_venta);
+                
                 return {
                     ...p,
                     promocion_activa: promocion,
-                    precio_venta: promocion ? promocion.nuevo_precio_venta : precioBase
+                    precio_venta: promocion ? parseFloat(promocion.nuevo_precio_venta) : precioBase
                 };
             })
         );
-
     };
 
 
@@ -1483,7 +1497,11 @@ const Cuentas = () => {
                                                 {cantidadSeleccionada > 0 && (
                                                     <span className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff' }}>{cantidadSeleccionada}</span>
                                                 )}
-                                                <p className="text-xs font-medium mb-1 line-clamp-2 pr-6" style={{ color: cantidadSeleccionada > 0 ? '#fff' : '#222' }}>{producto.descripcion}</p>
+                                                <p className="text-xs font-medium mb-1 line-clamp-2 pr-6" style={{ color: cantidadSeleccionada > 0 ? '#fff' : '#222' }}>
+                                                    {producto.descripcion}
+                                                    {producto.tipo_impuesto === '2' && <span className="ml-2 text-[9px] px-1 py-0.5 rounded bg-amber-100 text-amber-700 font-bold uppercase">EXENTO</span>}
+                                                    {producto.tipo_impuesto === '3' && <span className="ml-2 text-[9px] px-1 py-0.5 rounded bg-blue-100 text-blue-700 font-bold uppercase">NO SUJ</span>}
+                                                </p>
                                                 <p className="text-xs mb-1" style={{ color: cantidadSeleccionada > 0 ? 'rgba(255,255,255,0.6)' : '#aaa' }}>{producto.presentacion}</p>
                                                 <p className="text-sm font-medium" style={{ color: cantidadSeleccionada > 0 ? '#fff' : '#111' }}>${formatDinero(producto.precio_venta || producto.precioventa)}</p>
                                                 <p className="text-xs mt-1" style={{ color: cantidadSeleccionada > 0 ? 'rgba(255,255,255,0.5)' : '#ccc' }}>Stock {Math.trunc(producto.cantidad_disponible)}</p>
@@ -1703,7 +1721,11 @@ const Cuentas = () => {
                                                 {cantidadSeleccionada > 0 && (
                                                     <span className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff' }}>{cantidadSeleccionada}</span>
                                                 )}
-                                                <p className="text-xs font-medium mb-1 line-clamp-2 pr-6" style={{ color: cantidadSeleccionada > 0 ? '#fff' : '#222' }}>{producto.descripcion}</p>
+                                                <p className="text-xs font-medium mb-1 line-clamp-2 pr-6" style={{ color: cantidadSeleccionada > 0 ? '#fff' : '#222' }}>
+                                                    {producto.descripcion}
+                                                    {producto.tipo_impuesto === '2' && <span className="ml-2 text-[9px] px-1 py-0.5 rounded bg-amber-100 text-amber-700 font-bold uppercase">EXENTO</span>}
+                                                    {producto.tipo_impuesto === '3' && <span className="ml-2 text-[9px] px-1 py-0.5 rounded bg-blue-100 text-blue-700 font-bold uppercase">NO SUJ</span>}
+                                                </p>
                                                 <p className="text-xs mb-1" style={{ color: cantidadSeleccionada > 0 ? 'rgba(255,255,255,0.6)' : '#aaa' }}>{producto.presentacion}</p>
                                                 <p className="text-sm font-medium" style={{ color: cantidadSeleccionada > 0 ? '#fff' : '#111' }}>${formatDinero(producto.precio_venta)}</p>
                                                 <p className="text-xs mt-1" style={{ color: cantidadSeleccionada > 0 ? 'rgba(255,255,255,0.5)' : '#ccc' }}>Stock {Math.trunc(producto.cantidad_disponible)}</p>

@@ -1,4 +1,4 @@
-import { SelectTipoItem, SelectUnidadMedida, MultiSelectTributos, SelectCategoria } from '../components/selects';
+import { SelectTipoItem, SelectUnidadMedida, MultiSelectTributos, SelectCategoria, SelectTipoImpuesto } from '../components/selects';
 import { useState, useEffect } from 'react'
 const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -24,7 +24,8 @@ const Productos = () => {
         precio_venta: 0,
         categoria_id: 1,
         tipo_item_id: 1,
-        unidad_medida_id: '', // Dinámico
+        unidad_medida_id: '',
+        tipo_impuesto: '1',
         tributos: [] 
     });
 
@@ -131,6 +132,7 @@ const Productos = () => {
                 categoria_id: producto.categoria_id || 1,
                 tipo_item_id: producto.tipo_item_id || 1,
                 unidad_medida_id: producto.unidad_medida_id || 59,
+                tipo_impuesto: producto.tipo_impuesto || '1',
                 tributos: producto.tributos ? producto.tributos.map(t => t.id) : []
             });
             setEditProduct(producto);
@@ -624,8 +626,24 @@ const Productos = () => {
 
                                 <div>
                                     <MultiSelectTributos 
-                                        selectedIds={createForm.tributos}
+                                        selectedIds={createForm.tributos || []}
                                         onChange={(ids) => setCreateForm({ ...createForm, tributos: ids })}
+                                        disabledIds={createForm.tipo_impuesto !== '1' ? [1] : []}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>TIPO IMPUESTO *</label>
+                                    <SelectTipoImpuesto 
+                                        value={createForm.tipo_impuesto || '1'}
+                                        onChange={(val) => {
+                                            let nuevosTributos = createForm.tributos || [];
+                                            if (val !== '1') {
+                                                nuevosTributos = nuevosTributos.filter(t => t !== 1);
+                                            }
+                                            setCreateForm({ ...createForm, tipo_impuesto: val, tributos: nuevosTributos });
+                                        }}
+                                        required
                                     />
                                 </div>
 
@@ -755,6 +773,22 @@ const Productos = () => {
                                     <MultiSelectTributos 
                                         selectedIds={editForm.tributos || []}
                                         onChange={(ids) => setEditForm({ ...editForm, tributos: ids })}
+                                        disabledIds={editForm.tipo_impuesto !== '1' ? [1] : []}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs tracking-widest mb-2" style={{ color: '#999' }}>TIPO IMPUESTO *</label>
+                                    <SelectTipoImpuesto 
+                                        value={editForm.tipo_impuesto}
+                                        onChange={(val) => {
+                                            let nuevosTributos = editForm.tributos || [];
+                                            if (val !== '1') {
+                                                nuevosTributos = nuevosTributos.filter(t => t !== 1);
+                                            }
+                                            setEditForm({ ...editForm, tipo_impuesto: val, tributos: nuevosTributos });
+                                        }}
+                                        required
                                     />
                                 </div>
 

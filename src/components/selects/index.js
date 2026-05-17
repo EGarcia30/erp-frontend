@@ -14,6 +14,7 @@ export { default as SelectUnidadMedida } from './SelectUnidadMedida';
 export { default as SelectTipoItem } from './SelectTipoItem';
 export { default as SelectCategoria } from './SelectCategoria';
 export { default as MultiSelectTributos } from './MultiSelectTributos';
+export { default as SelectTipoImpuesto } from './SelectTipoImpuesto'; // 👈 NUEVO
 
 
 
