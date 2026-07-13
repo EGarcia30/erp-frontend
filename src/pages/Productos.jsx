@@ -1,5 +1,7 @@
 import { SelectTipoItem, SelectUnidadMedida, MultiSelectTributos, SelectCategoria, SelectTipoImpuesto } from '../components/selects';
 import { useState, useEffect } from 'react'
+import { getTributos } from '../services/tributos';
+import { getUnidadesMedida } from '../services/unidades_medida';
 const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const Productos = () => {
@@ -10,6 +12,10 @@ const Productos = () => {
     const [error, setError] = useState(null);
     const [updating, setUpdating] = useState(null);
     const [modalProduct, setModalProduct] = useState(null);
+    // Id del tributo IVA (código '20'), resuelto dinámicamente. 1 es solo fallback.
+    const [ivaTributoId, setIvaTributoId] = useState(1);
+    // Id de la unidad "Unidad" (código '59'), resuelto dinámicamente. '' hasta resolver.
+    const [unidadDefaultId, setUnidadDefaultId] = useState('');
 
     //Modal de Crear Producto
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -106,6 +112,38 @@ const Productos = () => {
             fetchProductos(page, search);
         }, [page, search]);
 
+        // Resolver el id real del tributo IVA por su código '20' (evita hardcodear el id)
+        useEffect(() => {
+            const resolverIva = async () => {
+                try {
+                    const data = await getTributos();
+                    if (data.success) {
+                        const iva = data.data.find(t => t.codigo === '20');
+                        if (iva) setIvaTributoId(iva.id);
+                    }
+                } catch (e) {
+                    console.error('Error resolviendo id de IVA:', e);
+                }
+            };
+            resolverIva();
+        }, []);
+
+        // Resolver el id real de la unidad "Unidad" por su código '59' (default al crear)
+        useEffect(() => {
+            const resolverUnidad = async () => {
+                try {
+                    const data = await getUnidadesMedida();
+                    if (data.success) {
+                        const unidad = data.data.find(u => u.codigo === '59');
+                        if (unidad) setUnidadDefaultId(unidad.id);
+                    }
+                } catch (e) {
+                    console.error('Error resolviendo id de Unidad:', e);
+                }
+            };
+            resolverUnidad();
+        }, []);
+
         useEffect(() => {
             const delayDebounce = setTimeout(() => {
                 setSearch(searchInput)
@@ -131,7 +169,7 @@ const Productos = () => {
                 precio_venta: producto.precio_venta || 0,
                 categoria_id: producto.categoria_id || 1,
                 tipo_item_id: producto.tipo_item_id || 1,
-                unidad_medida_id: producto.unidad_medida_id || 59,
+                unidad_medida_id: producto.unidad_medida_id || unidadDefaultId,
                 tipo_impuesto: producto.tipo_impuesto || '1',
                 tributos: producto.tributos ? producto.tributos.map(t => t.id) : []
             });
@@ -158,8 +196,9 @@ const Productos = () => {
                 precio_venta: 0,
                 categoria_id: 1,
                 tipo_item_id: 1,
-                unidad_medida_id: 59,
-                tributos: [1] // 1 = IVA 13% por defecto
+                unidad_medida_id: unidadDefaultId,   // "Unidad" por defecto (id real)
+                tipo_impuesto: '1',        // Gravado por defecto
+                tributos: [ivaTributoId]   // IVA preseleccionado (Gravado)
             });
             setShowCreateModal(true);
         };
@@ -487,7 +526,7 @@ const Productos = () => {
                 {productos.length === 0 && (
                     <div className="text-center py-20">
                         <p className="text-sm mb-4" style={{ color: '#aaa' }}>No hay productos registrados</p>
-                        <button onClick={() => { setShowCreateModal(true); setProductosPage(1); fetchProductos(1); }}
+                        <button onClick={handleAbrirCrear}
                             className="px-5 py-2.5 rounded-lg text-sm font-medium"
                             style={{ background: '#222', color: '#fff' }}>
                             + Crear Primer Producto
@@ -625,10 +664,10 @@ const Productos = () => {
                                 </div>
 
                                 <div>
-                                    <MultiSelectTributos 
+                                    <MultiSelectTributos
                                         selectedIds={createForm.tributos || []}
                                         onChange={(ids) => setCreateForm({ ...createForm, tributos: ids })}
-                                        disabledIds={createForm.tipo_impuesto !== '1' ? [1] : []}
+                                        disabledIds={createForm.tipo_impuesto !== '1' ? [ivaTributoId] : []}
                                     />
                                 </div>
 
@@ -638,8 +677,14 @@ const Productos = () => {
                                         value={createForm.tipo_impuesto || '1'}
                                         onChange={(val) => {
                                             let nuevosTributos = createForm.tributos || [];
-                                            if (val !== '1') {
-                                                nuevosTributos = nuevosTributos.filter(t => t !== 1);
+                                            if (val === '1') {
+                                                // Gravado: asegurar IVA presente
+                                                if (!nuevosTributos.includes(ivaTributoId)) {
+                                                    nuevosTributos = [...nuevosTributos, ivaTributoId];
+                                                }
+                                            } else {
+                                                // Exento / No sujeto: quitar IVA
+                                                nuevosTributos = nuevosTributos.filter(t => t !== ivaTributoId);
                                             }
                                             setCreateForm({ ...createForm, tipo_impuesto: val, tributos: nuevosTributos });
                                         }}
@@ -770,10 +815,10 @@ const Productos = () => {
                                 </div>
 
                                 <div>
-                                    <MultiSelectTributos 
+                                    <MultiSelectTributos
                                         selectedIds={editForm.tributos || []}
                                         onChange={(ids) => setEditForm({ ...editForm, tributos: ids })}
-                                        disabledIds={editForm.tipo_impuesto !== '1' ? [1] : []}
+                                        disabledIds={editForm.tipo_impuesto !== '1' ? [ivaTributoId] : []}
                                     />
                                 </div>
 
@@ -783,8 +828,14 @@ const Productos = () => {
                                         value={editForm.tipo_impuesto}
                                         onChange={(val) => {
                                             let nuevosTributos = editForm.tributos || [];
-                                            if (val !== '1') {
-                                                nuevosTributos = nuevosTributos.filter(t => t !== 1);
+                                            if (val === '1') {
+                                                // Gravado: asegurar IVA presente
+                                                if (!nuevosTributos.includes(ivaTributoId)) {
+                                                    nuevosTributos = [...nuevosTributos, ivaTributoId];
+                                                }
+                                            } else {
+                                                // Exento / No sujeto: quitar IVA
+                                                nuevosTributos = nuevosTributos.filter(t => t !== ivaTributoId);
                                             }
                                             setEditForm({ ...editForm, tipo_impuesto: val, tributos: nuevosTributos });
                                         }}
